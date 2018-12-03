@@ -7,7 +7,7 @@ import java.util.Vector;
 
 public class meetingInfo {
     // name of the meeting
-    public String name;
+    private String name;
     // day and time
     public GregorianCalendar day;
     public GregorianCalendar start;
