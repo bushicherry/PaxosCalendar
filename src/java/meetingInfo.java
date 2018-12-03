@@ -1,52 +1,64 @@
 package java;
 
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Vector;
+import java.io.Serializable;
+import java.util.*;
 
-public class meetingInfo {
+public class meetingInfo implements Serializable {
     // name of the meeting
-    public String name;
+    private String name;
     // day and time
-    public GregorianCalendar day;
-    public GregorianCalendar start;
-    public GregorianCalendar end;
+    private int[] day; // 3 elements, year month day
+    private int[] start; // 2 elements, hour, minute
+    private int[] end; // 2 elements, hour, minute
+
     // users
-    public Vector<String> users;
-    //indicator 1 if insert, 0 if delete
+    private HashSet<String> users;
 
     // constructor for deletion
-    public meetingInfo(String n){
-        name = n;
-        users = null;
-        day = null;
-        start = null;
-        end = null;
+    meetingInfo(String n){
+        this.name = n;
+        this.users = null;
+        this.day = new int[3];
+        this.start = new int[2];
+        this.end = new int[2];
     }
     // constructor
-    public meetingInfo(String n, GregorianCalendar d, GregorianCalendar s, GregorianCalendar e, Vector<String> u){
-        name = n;
-        day = new GregorianCalendar(d.get(Calendar.YEAR), d.get(Calendar.MONTH), d.get(Calendar.DATE));
-        start = new GregorianCalendar(d.get(Calendar.YEAR), d.get(Calendar.MONTH), d.get(Calendar.DATE),s.get(Calendar.HOUR_OF_DAY), s.get(Calendar.MINUTE));
-        end = new GregorianCalendar(d.get(Calendar.YEAR), d.get(Calendar.MONTH), d.get(Calendar.DATE),e.get(Calendar.HOUR_OF_DAY), e.get(Calendar.MINUTE));
-        users = new Vector<>(u);
+    meetingInfo(String n, int[] day_, int[] start_, int[] end_, HashSet<String> users_){
+        this.name = n;
+        this.start = start_;
+        this.day = day_;
+        this.end = end_;
+        this.users = users_;
     }
 
-    public meetingInfo(meetingInfo MI){
-        if(MI.users != null) {
-            name = MI.name;
-            day = new GregorianCalendar(MI.day.get(Calendar.YEAR), MI.day.get(Calendar.MONTH), MI.day.get(Calendar.DATE));
-            start = new GregorianCalendar(MI.day.get(Calendar.YEAR), MI.day.get(Calendar.MONTH), MI.day.get(Calendar.DATE), MI.start.get(Calendar.HOUR_OF_DAY), MI.start.get(Calendar.MINUTE));
-            end = new GregorianCalendar(MI.day.get(Calendar.YEAR), MI.day.get(Calendar.MONTH), MI.day.get(Calendar.DATE), MI.end.get(Calendar.HOUR_OF_DAY), MI.end.get(Calendar.MINUTE));
-            users = new Vector<>(MI.users);
-        } else {
-            name = MI.name;
-            users = null;
-            day = null;
-            start = null;
-            end = null;
-        }
+    meetingInfo(meetingInfo MI){
+        this.name = MI.name;
+        this.start = MI.start;
+        this.day = MI.day;
+        this.end = MI.end;
+        this.users = MI.users;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    public int[] getDay(){
+        return new int[]{day[0],day[1],day[2]};
+
+    }
+
+    public int[] getStart(){
+        return new int[]{start[0], start[1]};
+    }
+
+    public int[] getEnd(){
+        return new int[]{end[0],end[1]};
+    }
+
+    public HashSet<String> getUser(){
+        return new HashSet<>(users);
     }
 
     @Override
@@ -58,4 +70,17 @@ public class meetingInfo {
         return false;
     }
 
+    public int compareTo(meetingInfo obj){
+        if(day[0] == obj.getDay()[0]){
+            if(day[1]== obj.getDay()[1]){
+                if(day[2] == obj.getDay()[2]){
+                    if(start[0] == obj.getStart()[0]){
+                        if(start[1] == obj.getStart()[1]){
+                            return 0;
+                        }else return start[1] - obj.getStart()[1];
+                    }return start[0] - obj.getStart()[0];
+                }else return day[2] - obj.getDay()[2];
+            }else return day[1] - obj.getDay()[1];
+        } else return day[0] - obj.getDay()[0];
+    }
 }
