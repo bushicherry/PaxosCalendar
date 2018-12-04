@@ -17,16 +17,16 @@ public class Packet implements Serializable {
                     // 4 for commit packet
                     // 5 for nack packet
                     // 6 for asking for missing holes
-    public int LogIndex; // log index
+    public int LogIndex; // LogEntry index
 
 
     // for filling the hole
-    public int StartNumOfLogIndex; // the start index for missing log
-    public int EndNumOfLogIndex; // the end index for missing log
-    public ArrayList<PaxosLog.Log> RespLogArray; // responded log array
+    public int StartNumOfLogIndex; // the start index for missing LogEntry
+    public int EndNumOfLogIndex; // the end index for missing LogEntry
+    public ArrayList<PaxosLog.LogEntry> RespLogArray; // responded LogEntry array
 
 
-    public Packet(int pn, int an, meetingInfo av, int pt,int ln, int StarNumberOfIndex_, int EndNumOfIndex_, ArrayList<PaxosLog.Log> LogArray){
+    public Packet(int pn, int an, meetingInfo av, int pt,int ln, int StarNumberOfIndex_, int EndNumOfIndex_, ArrayList<PaxosLog.LogEntry> LogArray){
         this.propNUm = pn;
         this.accNum = an;
         this.accValue = av;

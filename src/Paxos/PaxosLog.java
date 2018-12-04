@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class PaxosLog implements Serializable {
-    // a log array to store
-    private ArrayList<Log> repLog; // replicated log for each site
+    // a LogEntry array to store
+    private ArrayList<LogEntry> repLog; // replicated LogEntry for each site
     private int lastPropNum; // the last used proposal number
 
     // constructor
@@ -20,7 +20,7 @@ public class PaxosLog implements Serializable {
     }
 
     // get
-    public ArrayList<Log> getRepLog(){
+    public ArrayList<LogEntry> getRepLog(){
         return this.repLog;
     }
 
@@ -32,15 +32,15 @@ public class PaxosLog implements Serializable {
         this.lastPropNum = newNum;
     }
 
-    // insert an log
-    public void insertLog(Log l){ // l is a new log
+    // insert an LogEntry
+    public void insertLog(LogEntry l){ // l is a new LogEntry
         this.repLog.add(l);
     }
 
 
-    //print_out log
+    //print_out LogEntry
     void LogArrayPrint(){
-        for(Log l: repLog){
+        for(LogEntry l: repLog){
             if (l.getMeeting().getUser() ==null){
                 System.out.println("Cancel " + l.getMeeting().getName());
 
@@ -50,15 +50,15 @@ public class PaxosLog implements Serializable {
         }
     }
 
-    public static class Log implements Serializable {
+    public static class LogEntry implements Serializable {
         // 0 -> schedule; 1 -> cancel
         int LogIndex;
         int type;
-        // unique ID for each log,the accNum in synod algorithm
+        // unique ID for each LogEntry,the accNum in synod algorithm
         int uniqueID;
         // value v
         meetingInfo meeting;
-        public Log(int type, int ID, meetingInfo value, int LgIndex)  {
+        public LogEntry(int type, int ID, meetingInfo value, int LgIndex)  {
             this.type = type;
             this.uniqueID = ID; // the accNum in synod algorithm
             this.meeting = value;
