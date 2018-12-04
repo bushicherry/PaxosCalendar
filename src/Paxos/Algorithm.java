@@ -9,8 +9,12 @@ public class Algorithm {
     /**
      * fill hole then send popose
      */
-    public void fillHolesReq(PaxosLog Plog, DatagramSocket socket, meetingInfo meeting){
+    public void fillHolesReq(PaxosLog Plog, DatagramSocket socket, meetingInfo meeting, HashMap<String, int[] > HashPorts, String myname){
+        // check if there is missing hole
+        if(!Plog.IfHoleExist())return;
+        else {
 
+        }
 
     }
 
@@ -29,7 +33,6 @@ public class Algorithm {
         // get a new proposer number:
         int PropNum = Plog.getSiteID() + 100;
         // Add an empty log into Paxoslog
-        Plog.insertLog(new PaxosLog.LogEntry(Plog.getSiteID(), ));
 
     }
 
