@@ -157,15 +157,26 @@ public class Algorithm {
         }
     }
 
-
+    /**
+     * On receiving accept(propNum,v) from a proposer
+     * 1> check if the received proposal number is greater or equal to the maxPrepare stored
+     *      in the state
+     * 2> if true, update the state(accNum,accValue,maxPrepare) of the log entry
+     *      and send ack to the proposer
+     * @param log
+     * @param acceptPacket
+     * @param hashPorts
+     * @param datagramSocket
+     */
     public static void OnRecvAccept(PaxosLog log, Packet acceptPacket, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket) {
         State state = log.getRepLog().get(acceptPacket.LogIndex).getCurState();
         if (acceptPacket.propNum >= state.maxPrep) {
             state.accNum = acceptPacket.propNum;
             state.accValue = acceptPacket.accValue;
             state.maxPrep = acceptPacket.propNum;
-
+            Packet ackPacket = new Packet(0, state.accNum, state.accValue, 3, acceptPacket.LogIndex, 0, null, null, null);
             UdpSender udpSender = new UdpSender(datagramSocket, hashPorts.get(acceptPacket.siteName)[0], acceptPacket.siteName, ackPacket);
+            new Thread(udpSender).start();
         }
     }
 
