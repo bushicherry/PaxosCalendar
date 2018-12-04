@@ -88,17 +88,19 @@ public class PaxosLog implements Serializable {
 
     public static class LogEntry implements Serializable {
         // 0 -> schedule; 1 -> cancel
+        int ProposerID;
         int LogIndex;
         int type;
         // unique ID for each LogEntry,the accNum in synod algorithm
         int uniqueID;
         // value v
         meetingInfo meeting;
-        public LogEntry(int type, int ID, meetingInfo value, int LgIndex)  {
+        public LogEntry(int ProposerID,int LgIndex, int type, int ID, meetingInfo value)  {
             this.type = type;
             this.uniqueID = ID; // the accNum in synod algorithm
             this.meeting = value;
             this.LogIndex = LgIndex;
+            this.ProposerID = ProposerID;
         }
 
 
@@ -121,6 +123,10 @@ public class PaxosLog implements Serializable {
         public int getLogIndex(){
             return this.LogIndex;
         }
+        public int getProposerID(){
+            return this.ProposerID;
+        }
+
     }
 
 }
