@@ -9,18 +9,21 @@ public class PaxosLog implements Serializable {
     private ArrayList<LogEntry> repLog; // replicated LogEntry for each site
     private int lastPropNum; // the last used proposal number
     private Vector<PaxosLog.LogEntry> EmptyLog; // indicate if there are any holes
+    private int siteID;
 
     // constructor
     public PaxosLog(int siteID){
         this.repLog = new ArrayList<>();
         this.lastPropNum = siteID;
         EmptyLog = new Vector<>();
+        this.siteID = siteID;
     }
 
     public PaxosLog(PaxosLog pLog){
         this.repLog = pLog.getRepLog();
         this.lastPropNum = pLog.getLastPropNum();
         EmptyLog = pLog.getEmptyLog();
+
     }
 
     // get
@@ -38,6 +41,10 @@ public class PaxosLog implements Serializable {
 
     public void setLastProNum(int newNum){
         this.lastPropNum = newNum;
+    }
+
+    public int getSiteID(){
+        return siteID;
     }
 
     // insert an LogEntry
