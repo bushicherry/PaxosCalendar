@@ -77,10 +77,15 @@ public class meetingInfo implements Serializable {
                     if(start[0] == obj.getStart()[0]){
                         if(start[1] == obj.getStart()[1]){
                             return 0;
-                        }else return start[1] - obj.getStart()[1];
-                    }return start[0] - obj.getStart()[0];
-                }else return day[2] - obj.getDay()[2];
-            }else return day[1] - obj.getDay()[1];
-        } else return day[0] - obj.getDay()[0];
+                        }
+                        return start[1] - obj.getStart()[1];
+                    }
+                    return start[0] - obj.getStart()[0];
+                }
+                return day[2] - obj.getDay()[2];
+            }
+            return day[1] - obj.getDay()[1];
+        }
+        return day[0] - obj.getDay()[0];
     }
 }
