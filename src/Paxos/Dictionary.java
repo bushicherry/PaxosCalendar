@@ -87,15 +87,7 @@ public class Dictionary {
      */
     public synchronized void printEntireDic() {
         for (meetingInfo m: timeOrderedSet) {
-            int[] date = m.getDate();
-            int[] start = m.getStart();
-            int[] end = m.getEnd();
-            String ret = String.format("%s %d/%d/%d %02d:%02d %02d:%02d ",m.getName(),date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
-            for (String u : m.getUser()) {
-                ret = ret + u;
-                ret = ret + ",";
-            }
-            System.out.println(ret.substring(0,ret.length()-1));
+            System.out.println(m.toString());
         }
     }
 
@@ -106,15 +98,7 @@ public class Dictionary {
     public synchronized void printIndividualDic(String user) {
         if (mapByUser.containsKey(user)) {
             for (meetingInfo m: mapByUser.get(user)) {
-                int[] date = m.getDate();
-                int[] start = m.getStart();
-                int[] end = m.getEnd();
-                String ret = String.format("%s %d/%d/%d %02d:%02d %02d:%02d ",m.getName(),date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
-                for (String u : m.getUser()) {
-                    ret = ret + u;
-                    ret = ret + ",";
-                }
-                System.out.println(ret.substring(0,ret.length()-1));
+                System.out.println(m.toString());
             }
         }
     }
