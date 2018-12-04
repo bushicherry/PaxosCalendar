@@ -57,12 +57,12 @@ public class PaxosLog implements Serializable {
 
     // insert a value to empty hole
     public boolean insertEmptyLog(int Index, meetingInfo value){
-        if(repLog.get(Index-1).getMeeting() != null){
+        if(repLog.get(Index).getMeeting() != null){
             System.out.println("Not a hole, but a value is intended to be inserted");
             return false;
         }
         this.repLog.get(Index -1).setMeeting(value);
-        this.EmptyLog.remove(repLog.get(Index-1));
+        this.EmptyLog.remove(repLog.get(Index));
         return true;
     }
 
@@ -88,7 +88,7 @@ public class PaxosLog implements Serializable {
             if (l.getMeeting().getUser() ==null){
                 System.out.println("Cancel " + l.getMeeting().getName());
             } else {
-                System.out.print("Schedule " + l.getMeeting().toString());
+                System.out.println("Schedule " + l.getMeeting().toString());
             }
         }
     }
@@ -98,6 +98,8 @@ public class PaxosLog implements Serializable {
         int ProposerID;
         int LogIndex;
         int type;
+        // -> 0 for cancel
+        // -> 1 for schedule
         // unique ID for each LogEntry,the accNum in synod algorithm
         int uniqueID;
         // value v
