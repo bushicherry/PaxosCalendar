@@ -61,7 +61,7 @@ public class PaxosLog implements Serializable {
             System.out.println("Not a hole, but a value is intended to be inserted");
             return false;
         }
-        this.repLog.get(Index -1).setMeeting(value);
+        this.repLog.get(Index).setMeeting(value);
         this.EmptyLog.remove(repLog.get(Index));
         return true;
     }
@@ -84,11 +84,14 @@ public class PaxosLog implements Serializable {
 
     //print_out LogEntry
     void LogArrayPrint(){
+
         for(LogEntry l: repLog){
-            if (l.getMeeting().getUser() ==null){
-                System.out.println("Cancel " + l.getMeeting().getName());
-            } else {
-                System.out.println("Schedule " + l.getMeeting().toString());
+            if(l.getMeeting() != null) {
+                if (l.getMeeting().getUser() == null) {
+                    System.out.println("Cancel " + l.getMeeting().getName());
+                } else {
+                    System.out.println("Schedule " + l.getMeeting().toString());
+                }
             }
         }
     }
