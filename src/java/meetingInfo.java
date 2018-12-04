@@ -44,7 +44,7 @@ public class meetingInfo implements Serializable {
         return this.name;
     }
 
-    public int[] getdate(){
+    public int[] getDate(){
         return new int[]{date[0],date[1],date[2]};
 
     }
@@ -80,9 +80,9 @@ public class meetingInfo implements Serializable {
     }
 
     public int compareTo(meetingInfo obj){
-        if(date[2] == obj.getdate()[2]){
-            if(date[0]== obj.getdate()[0]){
-                if(date[1] == obj.getdate()[1]){
+        if(date[2] == obj.getDate()[2]){
+            if(date[0]== obj.getDate()[0]){
+                if(date[1] == obj.getDate()[1]){
                     if(start[0] == obj.getStart()[0]){
                         if(start[1] == obj.getStart()[1]){
                             return 0;
@@ -91,10 +91,10 @@ public class meetingInfo implements Serializable {
                     }
                     return start[0] - obj.getStart()[0];
                 }
-                return date[2] - obj.getdate()[2];
+                return date[2] - obj.getDate()[2];
             }
-            return date[1] - obj.getdate()[1];
+            return date[1] - obj.getDate()[1];
         }
-        return date[0] - obj.getdate()[0];
+        return date[0] - obj.getDate()[0];
     }
 }
