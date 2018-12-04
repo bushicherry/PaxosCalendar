@@ -140,7 +140,7 @@ public class PaxosLog implements Serializable {
         public int getLogIndex(){
             return this.LogIndex;
         }
-        public int getProposerID(){
+        public int getSiteID(){
             return this.ProposerID;
         }
 

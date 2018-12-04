@@ -104,11 +104,11 @@ public class Algorithm {
         int PropNum = Plog.getSiteID() + 100;
         // Add an empty log into Paxoslog
         int index = Plog.getRepLog().size();
-
         Packet tempPac = new Packet(PropNum, 0, null, 0, index,Plog.getSiteID(),myname, null,null);
         sendToAll(myname, HashPorts, socket, tempPac);
-
     }
+
+
 
 
     /**
