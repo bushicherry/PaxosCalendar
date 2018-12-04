@@ -8,7 +8,7 @@ public class meetingInfo implements Serializable {
     // name of the meeting
     private String name;
     // date and time
-    private int[] date; // 3 elements, year month date
+    private int[] date; // 3 elements, month date and year
     private int[] start; // 2 elements, hour, minute
     private int[] end; // 2 elements, hour, minute
 
@@ -70,14 +70,14 @@ public class meetingInfo implements Serializable {
         return false;
     }
 
-    public void MmeetingPrint(){
-        System.out.println();
+    public void meetingPrint(){
+        System.out.println(name + " " + );
     }
 
     public int compareTo(meetingInfo obj){
-        if(date[0] == obj.getdate()[0]){
-            if(date[1]== obj.getdate()[1]){
-                if(date[2] == obj.getdate()[2]){
+        if(date[2] == obj.getdate()[2]){
+            if(date[0]== obj.getdate()[0]){
+                if(date[1] == obj.getdate()[1]){
                     if(start[0] == obj.getStart()[0]){
                         if(start[1] == obj.getStart()[1]){
                             return 0;
