@@ -62,12 +62,16 @@ public class PaxosLog implements Serializable {
 
     // check if there is any empty hole exist
     public boolean IfHoleExist(){
-        if (EmptyLog.size() == 0) return false;
-        else return true;
+        return EmptyLog.size() == 0;
     }
     // return the array of missing log emtry index
     public int[] MissingLogIndex(){
-        int [] i = new int[]
+        if(EmptyLog.size() == 0) return null;
+        int [] i = new int[EmptyLog.size()];
+        for(int k = 0;  k < EmptyLog.size();k++){
+            i[k] = EmptyLog.get(k).getLogIndex();
+        }
+        return i;
     }
 
 
@@ -112,6 +116,10 @@ public class PaxosLog implements Serializable {
 
         public void setMeeting(meetingInfo m) {
             meeting = m;
+        }
+
+        public int getLogIndex(){
+            return this.LogIndex;
         }
     }
 
