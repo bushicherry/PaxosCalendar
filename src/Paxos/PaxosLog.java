@@ -69,7 +69,7 @@ public class PaxosLog implements Serializable {
 
     // check if there is any empty hole exist
     public boolean IfHoleExist(){
-        return EmptyLog.size() == 0;
+        return EmptyLog.size() != 0;
     }
     // return the array of missing log emtry index
     public int[] MissingLogIndex(){
