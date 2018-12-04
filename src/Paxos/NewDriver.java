@@ -156,6 +156,8 @@ public class NewDriver {
 
                 // set up meetingInfo, and do insert
                 //=========
+                // if holes
+                // send fill hole request
 
 
 

@@ -1,11 +1,12 @@
 package Paxos;
 
-public class State {
+import java.io.Serializable;
+
+public class State implements Serializable {
 
     public int state; // indicate the state in synod algorithm
     // 0 --> no state
-    // 1 --> waiting for propose response
-    // 2 --> waiting for ack
+    // 1 --> In Synod Algorithm
 
     // required variable in synod algorithm
     public int maxPrep;

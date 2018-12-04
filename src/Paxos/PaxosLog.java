@@ -102,12 +102,17 @@ public class PaxosLog implements Serializable {
         int uniqueID;
         // value v
         meetingInfo meeting;
+        // state for this log
+        State CurState ;// current state
+
+
         public LogEntry(int ProposerID,int LgIndex, int type, int ID, meetingInfo value)  {
             this.type = type;
             this.uniqueID = ID; // the accNum in synod algorithm
             this.meeting = value;
             this.LogIndex = LgIndex;
-            this.ProposerID = ProposerID;
+            this.ProposerID = ProposerID; // in anther word, SiteID
+            this.CurState = new State();
         }
 
 
@@ -132,6 +137,10 @@ public class PaxosLog implements Serializable {
         }
         public int getProposerID(){
             return this.ProposerID;
+        }
+
+        public State getCurState(){
+            return CurState;
         }
 
     }
