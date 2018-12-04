@@ -37,7 +37,7 @@ public class PaxosLog implements Serializable {
         this.repLog.add(l);
     }
 
-    public static class Log {
+    public static class Log implements Serializable {
         // 0 -> schedule; 1 -> cancel
         int LogIndex;
         int type;
