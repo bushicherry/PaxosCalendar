@@ -170,16 +170,17 @@ public class NewDriver {
 
             }
             else if (command.equals("cancel")) {
-
+                String meetingName = commandS.next();
+                Algorithm.Cancel(log,dictionary,meetingName,MyName,hostsPorts,socket);
             }
             else if (command.equals("view")) {
-
+                dictionary.printEntireDic();
             }
             else if (command.equals("myview")) {
-
+                dictionary.printIndividualDic(myName);
             }
             else if (command.equals("log")) {
-
+                log.LogArrayPrint();
             }
             else if (command.equals("exit")){
 
