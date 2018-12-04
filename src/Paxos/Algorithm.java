@@ -104,10 +104,32 @@ public class Algorithm {
         int PropNum = Plog.getSiteID() + 100;
         // Add an empty log into Paxoslog
         int index = Plog.getRepLog().size();
+        PaxosLog.LogEntry log1 = new PaxosLog.LogEntry(HashPorts.get(myname)[1],index, 0, PropNum, null);
+        Plog.insertLog(log1);
         Packet tempPac = new Packet(PropNum, 0, null, 0, index,Plog.getSiteID(),myname, null,null);
         sendToAll(myname, HashPorts, socket, tempPac);
     }
 
+    /**
+     * Once recv propose
+     * 1> fill all the holes before index received.
+     * 2> do Synod Algorithm
+     * 3> send response package to others
+     * @param pac
+     * @param Plog
+     * @param myname
+     * @param HashPorts
+     * @param socket
+     */
+
+    public static void RecvProp(Packet pac, PaxosLog Plog, String myname, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
+        // fill the hole if exists
+
+    }
+
+    /**
+     *
+     */
 
 
 
