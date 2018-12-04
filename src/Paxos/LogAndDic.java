@@ -68,7 +68,7 @@ public class LogAndDic {
 //        for(String user: m.users){
 //            for(meetingInfo meeting: this.Vi.Cld){
 //                if(meeting.users.contains(user)){
-//                    if(!Algorithm.ifFine(m, meeting)){
+//                    if(!WBAlgorithm.ifFine(m, meeting)){
 //                        return helper4(m, meeting);
 //                    }
 //                }
@@ -182,7 +182,7 @@ public class LogAndDic {
 //                                Vi.Insert_Dic((dR.op));
 //                                //check collision
 //                                if(coll_m != null){
-//                                    Algorithm.Cancel(this, coll_m.name, myname, myhash, socket);
+//                                    WBAlgorithm.Cancel(this, coll_m.name, myname, myhash, socket);
 //                                }
 //                            }
 //                        }

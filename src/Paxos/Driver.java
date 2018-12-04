@@ -50,7 +50,7 @@
 ////        final int numOfHosts = numHosts;
 //        // set up log and dictionary
 ////        final LogAndDic logAndDic = new LogAndDic(numHosts,myIndex);
-////        LogAndDic.sendPac[] recov = Algorithm.reload_pro(numOfHosts);
+////        LogAndDic.sendPac[] recov = WBAlgorithm.reload_pro(numOfHosts);
 ////        logAndDic.read_DicAlog_pac(recov[0], recov[1]);
 ////        final DatagramSocket socket = new DatagramSocket(myPort);
 //
@@ -75,8 +75,8 @@
 //                        @Override
 //                        public synchronized void run() {
 //                            // byte to sendPac
-//                            LogAndDic.sendPac pac = Algorithm.byte2sendPac(buffer,numOfHosts);
-//                            Algorithm.Onrec(logAndDic, pac, myName, hostsPorts, socket);
+//                            LogAndDic.sendPac pac = WBAlgorithm.byte2sendPac(buffer,numOfHosts);
+//                            WBAlgorithm.Onrec(logAndDic, pac, myName, hostsPorts, socket);
 //                        }
 //                    };
 //
@@ -146,14 +146,14 @@
 //                GregorianCalendar gEndTime = new GregorianCalendar(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE), endTime.getHour(), endTime.getMinute());
 //                meetingInfo m = new meetingInfo(name, gDate, gStartTime, gEndTime, participants);
 //
-//                Algorithm.Insert(logAndDic, m, hostsPorts, myName, socket);
+//                WBAlgorithm.Insert(logAndDic, m, hostsPorts, myName, socket);
 //
 //
 //
 //            }
 //            else if (command.equals("cancel")) {
 //                String name = commandS.next();
-//                Algorithm.Cancel(logAndDic,name,myName,hostsPorts,socket);
+//                WBAlgorithm.Cancel(logAndDic,name,myName,hostsPorts,socket);
 //            }
 //            else if (command.equals("view")) {
 //                logAndDic.View_dic();

@@ -87,8 +87,8 @@ public class NewDriver {
                             }
 
 //                            // byte to sendPac
-//                            LogAndDic.sendPac pac = Algorithm.byte2sendPac(buffer,numOfHosts);
-//                            Algorithm.Onrec(logAndDic, pac, myName, hostsPorts, socket);
+//                            LogAndDic.sendPac pac = WBAlgorithm.byte2sendPac(buffer,numOfHosts);
+//                            WBAlgorithm.Onrec(logAndDic, pac, myName, hostsPorts, socket);
                         }
                     };
 
@@ -171,7 +171,7 @@ public class NewDriver {
             }
             else if (command.equals("cancel")) {
                 String meetingName = commandS.next();
-                Algorithm.Cancel(log,dictionary,meetingName,MyName,hostsPorts,socket);
+                WBAlgorithm.Cancel(log,dictionary,meetingName,MyName,hostsPorts,socket);
             }
             else if (command.equals("view")) {
                 dictionary.printEntireDic();

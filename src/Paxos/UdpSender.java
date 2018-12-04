@@ -13,7 +13,7 @@ public class UdpSender {
         try {
             // pac to byte[]
             byte[] buffer = new byte[65507];
-            int offset = Algorithm.sendPac2byte(pac, buffer, numOfPorts);
+            int offset = WBAlgorithm.sendPac2byte(pac, buffer, numOfPorts);
 
             byte[] buffer = new byte[65507];
             byte[] msg_byte = pac.msg.getBytes(); //msg size <= 64
