@@ -45,7 +45,7 @@ public class NewDriver {
 
 
 
-        // set up
+        // set up socket
         final DatagramSocket socket = new DatagramSocket(myPort);
 
         // set up new log and dic
