@@ -13,14 +13,15 @@ class CompareTime implements Comparator<meetingInfo> {
 public class Dictionary {
     private TreeSet<meetingInfo> timeOrderedSet;
     private HashMap<String, meetingInfo> mapByName;
-    private HashMap<String, meetingInfo> mapByUser;
+    private HashMap<String, TreeSet<meetingInfo>> mapByUser;
 
     /**
      * Constructor
      */
     public Dictionary() {
-        timeOrderedSet = new TreeSet<>(new CompareTime);
+        timeOrderedSet = new TreeSet<>(new CompareTime());
         mapByName = new HashMap<>();
+        mapByUser = new HashMap<>();
     }
 
     /**
@@ -41,6 +42,15 @@ public class Dictionary {
             return false;
         }
         mapByName.put(m.getName(),m);
+        for (String u : m.getUser()) {
+            if (mapByUser.containsKey(u)) {
+                mapByUser.get(u).add(m);
+            } else {
+                TreeSet<meetingInfo> ts = new TreeSet<>(new CompareTime());
+                ts.add(m);
+                mapByUser.put(u, ts);
+            }
+        }
         return true;
     }
 
@@ -49,12 +59,15 @@ public class Dictionary {
      * @param name
      * @return false when no such meeting found
      */
-    public synchronized boolean removeBy(String name) {
+    public synchronized boolean removeByName(String name) {
         meetingInfo m = mapByName.get(name);
         if (m == null) return false;
-        boolean r = timeOrderedSet.remove(m);
-        mapByName.remove(name);
-        return r;
+        boolean removed = timeOrderedSet.remove(m);
+        for (String u : m.getUser()) {
+            removed = removed && mapByUser.get(u).remove(m);
+        }
+        if (removed) mapByName.remove(name);
+        return removed;
     }
 
     /**
@@ -73,6 +86,36 @@ public class Dictionary {
      * print the entire dictionary in lexicographical order
      */
     public synchronized void printEntireDic() {
-        
+        for (meetingInfo m: timeOrderedSet) {
+            int[] date = m.getDate();
+            int[] start = m.getStart();
+            int[] end = m.getEnd();
+            String ret = String.format("%s %d/%d/%d %02d:%02d %02d:%02d ",m.getName(),date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
+            for (String u : m.getUser()) {
+                ret = ret + u;
+                ret = ret + ",";
+            }
+            System.out.println(ret.substring(0,ret.length()-1));
+        }
+    }
+
+    /**
+     * given a ceitain user, print all meetings that involve him/her
+     * @param user
+     */
+    public synchronized void printIndividualDic(String user) {
+        if (mapByUser.containsKey(user)) {
+            for (meetingInfo m: mapByUser.get(user)) {
+                int[] date = m.getDate();
+                int[] start = m.getStart();
+                int[] end = m.getEnd();
+                String ret = String.format("%s %d/%d/%d %02d:%02d %02d:%02d ",m.getName(),date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
+                for (String u : m.getUser()) {
+                    ret = ret + u;
+                    ret = ret + ",";
+                }
+                System.out.println(ret.substring(0,ret.length()-1));
+            }
+        }
     }
 }

@@ -70,13 +70,13 @@ public class meetingInfo implements Serializable {
         return false;
     }
 
-    public void meetingPrint(){
-        System.out.print(name + " " + ((date[0] < 10)?"0"+date[0]: date[0]) +
-                 "/" +  ((date[1] < 10)?"0"+date[1]: date[1]) + "/" + date[2] + " ");
-        for(String s: users){
-            System.out.print(s + ",");
+    public String toString(){
+        String ret = String.format("%s %d/%d/%d %02d:%02d %02d:%02d ",name,date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
+        for (String u : users) {
+            ret = ret + u;
+            ret = ret + ",";
         }
-        System.out.println();
+        return ret.substring(0,ret.length()-1);
     }
 
     public int compareTo(meetingInfo obj){
