@@ -35,7 +35,7 @@ public class Packet implements Serializable {
         this.packetType = packetType;
         this.LogIndex = logIndex;
         this.siteID = siteID;
-        this.siteName = siteName
+        this.siteName = siteName;
 
         this.missingIndexList = missingIndexList;
         this.RespLogArray = respLogArray;
