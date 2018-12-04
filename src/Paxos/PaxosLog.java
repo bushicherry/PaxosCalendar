@@ -1,4 +1,4 @@
-package java;
+package Paxos;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,6 +35,20 @@ public class PaxosLog implements Serializable {
     // insert an log
     public void insertLog(Log l){ // l is a new log
         this.repLog.add(l);
+    }
+
+
+    //print_out log
+    void LogArrayPrint(){
+        for(Log l: repLog){
+            if (l.getMeeting().getUser() ==null){
+                System.out.println("Cancel " + l.getMeeting().getName());
+
+            } else {
+                System.out.print("Schedule ");
+                l.getMeeting().meetingPrint();
+            }
+        }
     }
 
     public static class Log implements Serializable {

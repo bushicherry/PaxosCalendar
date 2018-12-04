@@ -1,4 +1,4 @@
-package java;
+package Paxos;
 
 
 import java.io.Serializable;

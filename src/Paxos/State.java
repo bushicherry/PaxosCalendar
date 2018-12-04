@@ -1,4 +1,4 @@
-package java;
+package Paxos;
 
 public class State {
 

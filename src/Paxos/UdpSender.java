@@ -1,19 +1,19 @@
-package java;
+package Paxos;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.Calendar;
 
-public class UdpSender implements Runnable{
+public class UdpSender {
 
-    private DatagramSocket socket;
-    private DatagramPacket packet;
-
-    public UdpSender(DatagramSocket socket, int clientPort, String clientName, int numOfPorts, LogAndDic.sendPac pac) {
-        try {
-            // pac to byte[]
-            byte[] buffer = new byte[65507];
-            int offset = Algorithm.sendPac2byte(pac, buffer, numOfPorts);
+//    private DatagramSocket socket;
+//    private DatagramPacket packet;
+//
+//    public UdpSender(DatagramSocket socket, int clientPort, String clientName, int numOfPorts, LogAndDic.sendPac pac) {
+//        try {
+//            // pac to byte[]
+//            byte[] buffer = new byte[65507];
+//            int offset = Algorithm.sendPac2byte(pac, buffer, numOfPorts);
 
 //            byte[] buffer = new byte[65507];
 //            byte[] msg_byte = pac.msg.getBytes(); //msg size <= 64
@@ -78,29 +78,29 @@ public class UdpSender implements Runnable{
 
 
 
-            this.socket = socket;
-            packet = new DatagramPacket(
-                    buffer,
-                    offset+1,
-                    InetAddress.getByName(clientName),
-                    clientPort
-            );
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public synchronized void run() {
-        try {
-            socket.send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void close() {
-        socket.close();
-    }
+//            this.socket = socket;
+//            packet = new DatagramPacket(
+//                    buffer,
+//                    offset+1,
+//                    InetAddress.getByName(clientName),
+//                    clientPort
+//            );
+//        } catch (UnknownHostException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    @Override
+//    public synchronized void run() {
+//        try {
+//            socket.send(packet);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public void close() {
+//        socket.close();
+//    }
 
 }
