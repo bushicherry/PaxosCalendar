@@ -85,7 +85,7 @@ public class NewDriver {
                                     // ignore close exception
                                 }
                             }
-                            packet
+
 //                            // byte to sendPac
 //                            LogAndDic.sendPac pac = Algorithm.byte2sendPac(buffer,numOfHosts);
 //                            Algorithm.Onrec(logAndDic, pac, myName, hostsPorts, socket);
