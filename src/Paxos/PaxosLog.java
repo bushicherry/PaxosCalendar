@@ -11,9 +11,9 @@ public class PaxosLog implements Serializable {
     private Vector<PaxosLog.LogEntry> EmptyLog; // indicate if there are any holes
 
     // constructor
-    public PaxosLog(){
+    public PaxosLog(int siteID){
         this.repLog = new ArrayList<>();
-        this.lastPropNum = 0;
+        this.lastPropNum = siteID;
         EmptyLog = new Vector<>();
     }
 
@@ -65,7 +65,10 @@ public class PaxosLog implements Serializable {
         if (EmptyLog.size() == 0) return false;
         else return true;
     }
-    // check if
+    // return the array of missing log emtry index
+    public int[] MissingLogIndex(){
+        int [] i = new int[]
+    }
 
 
     //print_out LogEntry
