@@ -51,8 +51,6 @@ public class NewDriver {
 
         //==========
 
-        // initialize state
-        State CurState = new State(); // current state
 
         // open new thread
         //                 -> for user command
