@@ -36,7 +36,6 @@ public class UdpSender {
         }
     }
 
-    @Override
     public synchronized void run() {
         try {
             datagramSocket.send(datagramPacket);
