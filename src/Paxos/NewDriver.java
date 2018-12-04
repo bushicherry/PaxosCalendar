@@ -11,7 +11,6 @@ public class NewDriver {
         Scanner hostsInput;
         int numHosts=0;
         HashMap<String, int[] > hostsPorts = new HashMap<>();
-
         // attempts to create scanner for 'knownhosts_udp.txt'
         try
         {
