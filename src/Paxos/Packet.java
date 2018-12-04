@@ -16,9 +16,8 @@ public class Packet implements Serializable {
                     // 2 for accept packet
                     // 3 for ack packet
                     // 4 for commit packet
-                    // 5 for nack packet
                     // 6 for asking for missing holes
-                    //
+                    // 7 for reply missing hole ask;
     public int LogIndex; // LogEntry index
 
 

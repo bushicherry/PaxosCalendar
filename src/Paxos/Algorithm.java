@@ -7,10 +7,10 @@ public class Algorithm {
 
 
     /**
-     *
+     * fill hole then send popose
      */
-    public void fillHolesReq(PaxosLog Plog, DatagramSocket socket){
-        // see if there is empty hole:
+    public void fillHolesReq(PaxosLog Plog, DatagramSocket socket, meetingInfo meeting){
+
 
     }
 
