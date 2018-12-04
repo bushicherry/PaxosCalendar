@@ -37,7 +37,31 @@ public class Algorithm {
     }
 
 
+    /**
+     * send accept to a certain
+     * @param log
+     * @param myName
+     * @param hashPorts
+     * @param datagramSocket
+     */
+    public static void SendAccept(PaxosLog log, String myName, HashMap<String, int[] > hashPorts,  DatagramSocket datagramSocket) {
+
+    }
 
 
-
+    /**
+     * send the packet to all sites except itself on a new thread
+     * @param myName
+     * @param hashPorts
+     * @param datagramSocket
+     * @param packet
+     */
+    private static void sendToAll(String myName, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket, Packet packet) {
+        for (String siteName : hashPorts.keySet()) {
+            if (myName != siteName) {
+                UdpSender udpSender = new UdpSender(datagramSocket, hashPorts.get(siteName)[0], siteName, packet);
+                new Thread(udpSender).start();
+            }
+        }
+    }
 }

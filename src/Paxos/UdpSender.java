@@ -7,7 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.*;
 import java.util.Calendar;
 
-public class UdpSender {
+public class UdpSender implements Runnable{
 
     private DatagramSocket datagramSocket;
     private DatagramPacket datagramPacket;
