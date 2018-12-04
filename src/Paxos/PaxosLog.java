@@ -2,21 +2,25 @@ package Paxos;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Vector;
 
 public class PaxosLog implements Serializable {
     // a LogEntry array to store
     private ArrayList<LogEntry> repLog; // replicated LogEntry for each site
     private int lastPropNum; // the last used proposal number
+    private Vector<PaxosLog.LogEntry> EmptyLog; // indicate if there are any holes
 
     // constructor
-    public PaxosLog(int siteId){
+    public PaxosLog(int siteID){
         this.repLog = new ArrayList<>();
-        this.lastPropNum = siteId;
+        this.lastPropNum = siteID;
+        EmptyLog = new Vector<>();
     }
 
     public PaxosLog(PaxosLog pLog){
         this.repLog = pLog.getRepLog();
         this.lastPropNum = pLog.getLastPropNum();
+        EmptyLog = pLog.getEmptyLog();
     }
 
     // get
@@ -28,6 +32,10 @@ public class PaxosLog implements Serializable {
         return lastPropNum;
     }
 
+    public Vector<PaxosLog.LogEntry> getEmptyLog() {
+        return EmptyLog;
+    }
+
     public void setLastProNum(int newNum){
         this.lastPropNum = newNum;
     }
@@ -35,6 +43,35 @@ public class PaxosLog implements Serializable {
     // insert an LogEntry
     public void insertLog(LogEntry l){ // l is a new LogEntry
         this.repLog.add(l);
+        if(l.getMeeting() == null){
+            this.EmptyLog.add(l);
+        }
+    }
+
+    // insert a value to empty hole
+    public boolean insertEmptyLog(int Index, meetingInfo value){
+        if(repLog.get(Index-1).getMeeting() != null){
+            System.out.println("Not a hole, but a value is intended to be inserted");
+            return false;
+        }
+        this.repLog.get(Index -1).setMeeting(value);
+        this.EmptyLog.remove(repLog.get(Index-1));
+        return true;
+    }
+
+
+    // check if there is any empty hole exist
+    public boolean IfHoleExist(){
+        return EmptyLog.size() == 0;
+    }
+    // return the array of missing log emtry index
+    public int[] MissingLogIndex(){
+        if(EmptyLog.size() == 0) return null;
+        int [] i = new int[EmptyLog.size()];
+        for(int k = 0;  k < EmptyLog.size();k++){
+            i[k] = EmptyLog.get(k).getLogIndex();
+        }
+        return i;
     }
 
 
@@ -43,7 +80,6 @@ public class PaxosLog implements Serializable {
         for(LogEntry l: repLog){
             if (l.getMeeting().getUser() ==null){
                 System.out.println("Cancel " + l.getMeeting().getName());
-
             } else {
                 System.out.print("Schedule " + l.getMeeting().toString());
             }
@@ -65,6 +101,7 @@ public class PaxosLog implements Serializable {
             this.LogIndex = LgIndex;
         }
 
+
         public meetingInfo getMeeting(){
             return this.meeting;
         }
@@ -75,6 +112,14 @@ public class PaxosLog implements Serializable {
 
         public int getType(){
             return this.type;
+        }
+
+        public void setMeeting(meetingInfo m) {
+            meeting = m;
+        }
+
+        public int getLogIndex(){
+            return this.LogIndex;
         }
     }
 
