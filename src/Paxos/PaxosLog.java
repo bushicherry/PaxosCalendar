@@ -9,9 +9,9 @@ public class PaxosLog implements Serializable {
     private int lastPropNum; // the last used proposal number
 
     // constructor
-    public PaxosLog(){
+    public PaxosLog(int siteId){
         this.repLog = new ArrayList<>();
-        this.lastPropNum = 0;
+        this.lastPropNum = siteId;
     }
 
     public PaxosLog(PaxosLog pLog){

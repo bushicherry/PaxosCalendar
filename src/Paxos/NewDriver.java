@@ -1,7 +1,7 @@
 package Paxos;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.*;
@@ -38,22 +38,67 @@ public class NewDriver {
         final int myIndex = hostsPorts.get(myName)[1];
         final int numOfHosts = numHosts;
 
-        //
-
-
-
-        // set up socket
+        // set up datagram socket
         final DatagramSocket socket = new DatagramSocket(myPort);
 
         // set up new log and dic
-        //===========
+        final PaxosLog log = new PaxosLog(myIndex);
+        final Dictionary dictionary = new Dictionary();
 
 
-        //==========
+        // set up udp socket on a new thread to listen for msgs from other sites
+        Runnable udpListener = new Runnable() {
 
+            @Override
+            public void run() {
+                System.out.println(myName + ": start listening for msgs.");
+                while (true) {
+                    byte[] buffer = new byte[65507];
+                    DatagramPacket datagramPacket = new DatagramPacket(buffer,0,buffer.length);
+                    try {
+                        socket.receive(datagramPacket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return;
+                    }
 
+                    Runnable recvMsg = new Runnable() {
+                        @Override
+                        public synchronized void run() {
+                            ByteArrayInputStream bis = new ByteArrayInputStream(buffer);
+                            ObjectInput in = null;
+                            try {
+                                in = new ObjectInputStream(bis);
+                                Packet packet = (Packet) in.readObject();
+//                                System.out.println("Receive: ");
+//                                System.out.println(m.toString());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            } finally {
+                                try {
+                                    if (in != null) {
+                                        in.close();
+                                    }
+                                } catch (IOException ex) {
+                                    // ignore close exception
+                                }
+                            }
+                            packet
+//                            // byte to sendPac
+//                            LogAndDic.sendPac pac = Algorithm.byte2sendPac(buffer,numOfHosts);
+//                            Algorithm.Onrec(logAndDic, pac, myName, hostsPorts, socket);
+                        }
+                    };
+
+                    new Thread(recvMsg).start();
+                }
+            }
+        };
+
+        new Thread(udpListener).start();
         // open new thread
-        //                 -> for user command
         //                 -> for package received
         //==========
 

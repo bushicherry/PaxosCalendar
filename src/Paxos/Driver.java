@@ -60,7 +60,7 @@
 //
 //            @Override
 //            public void run() {
-//                System.out.println(myName + ": start listening for msgs.");
+//                System.out.println(myName + ": start listening for commands.");
 //                while (true) {
 //                    byte[] buffer = new byte[65507];
 //                    DatagramPacket packet = new DatagramPacket(buffer,0,buffer.length);
