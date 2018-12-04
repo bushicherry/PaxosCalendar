@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class Packet implements Serializable {
     // for synod algorithm
-    public int propNUm; // proposal number in the beginning
+    public int propNum; // proposal number in the beginning
     public int accNum; // actual number each process
     public meetingInfo accValue; // actual value
     public int packetType; // the packet type
@@ -20,6 +20,7 @@ public class Packet implements Serializable {
                     // 7 for reply missing hole ask;
     public int LogIndex; // LogEntry index
     public int siteID;
+    public int siteName;
 
 
     // for filling the hole
@@ -27,16 +28,17 @@ public class Packet implements Serializable {
     public ArrayList<PaxosLog.LogEntry> RespLogArray; // responded LogEntry array
 
 
-    public Packet(int pn, int an, meetingInfo av, int pt,int ln, int[]_missingIndexList, ArrayList<PaxosLog.LogEntry> LogArray, int siteID){
-        this.propNUm = pn;
-        this.accNum = an;
-        this.accValue = av;
-        this.packetType = pt;
-        this.LogIndex = ln;
+    public Packet(int propNum, int accNum, meetingInfo accValue, int packetType,int logIndex, int[] missingIndexList, ArrayList<PaxosLog.LogEntry> respLogArray, int siteID, int siteName){
+        this.propNum = propNum;
+        this.accNum = accNum;
+        this.accValue = accValue;
+        this.packetType = packetType;
+        this.LogIndex = logIndex;
         this.siteID = siteID;
+        this.siteName = siteName
 
-        this.missingIndexList = _missingIndexList;
-        this.RespLogArray = LogArray;
+        this.missingIndexList = missingIndexList;
+        this.RespLogArray = respLogArray;
 
     }
 
