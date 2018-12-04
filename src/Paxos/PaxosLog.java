@@ -88,7 +88,7 @@ public class PaxosLog implements Serializable {
             if (l.getMeeting().getUser() ==null){
                 System.out.println("Cancel " + l.getMeeting().getName());
             } else {
-                System.out.print("Schedule " + l.getMeeting().toString());
+                System.out.println("Schedule " + l.getMeeting().toString());
             }
         }
     }
