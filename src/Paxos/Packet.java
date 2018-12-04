@@ -20,20 +20,21 @@ public class Packet implements Serializable {
                     // 7 for reply missing hole ask;
     public int LogIndex; // LogEntry index
     public int siteID;
-
+    public String siteName;
 
     // for filling the hole
     public int[] missingIndexList;
     public ArrayList<PaxosLog.LogEntry> RespLogArray; // responded LogEntry array
 
 
-    public Packet(int pn, int an, meetingInfo av, int pt,int ln, int[]_missingIndexList, ArrayList<PaxosLog.LogEntry> LogArray, int siteID){
+    public Packet(int pn, int an, meetingInfo av, int pt,int ln, int[] _missingIndexList, ArrayList<PaxosLog.LogEntry> LogArray, int siteID, String siteName){
         this.propNUm = pn;
         this.accNum = an;
         this.accValue = av;
         this.packetType = pt;
         this.LogIndex = ln;
         this.siteID = siteID;
+        this.siteName = siteName;
 
         this.missingIndexList = _missingIndexList;
         this.RespLogArray = LogArray;
