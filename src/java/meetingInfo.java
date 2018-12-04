@@ -71,7 +71,12 @@ public class meetingInfo implements Serializable {
     }
 
     public void meetingPrint(){
-        System.out.println(name + " " + );
+        System.out.print(name + " " + ((date[0] < 10)?"0"+date[0]: date[0]) +
+                 "/" +  ((date[1] < 10)?"0"+date[1]: date[1]) + "/" + date[2] + " ");
+        for(String s: users){
+            System.out.print(s + ",");
+        }
+        System.out.println();
     }
 
     public int compareTo(meetingInfo obj){
