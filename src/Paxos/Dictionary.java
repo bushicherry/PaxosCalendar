@@ -25,6 +25,27 @@ public class Dictionary {
     }
 
     /**
+     * Check if a meeting conflict with current dictionary
+     * Need to be locked since it involves add and remove
+     * @param m
+     * @return true if conflict, false if not
+     */
+    public synchronized boolean checkConflict(meetingInfo m) {
+        boolean conflict = false;
+        timeOrderedSet.add(m);
+        int[] myEnd = m.getEnd();
+        int[] myStart = m.getStart();
+        int[] highEnd = timeOrderedSet.higher(m).getEnd();
+        int[] lowStart = timeOrderedSet.lower(m).getStart();
+        if (highEnd[0]>myStart[0] || (highEnd[0]==myStart[0] && highEnd[1]>myStart[1]) ||
+                myEnd[0]>lowStart[0] || (myEnd[0]==lowStart[0] && myEnd[1]>lowStart[1])) {
+            return true;
+        }
+        timeOrderedSet.remove(m);
+        return conflict;
+    }
+
+    /**
      * add a new record of meeting information to the dictionary
      * @requires the time slots does not conflict with any existing meetings
      * @param m

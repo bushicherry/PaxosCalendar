@@ -138,7 +138,13 @@ public class Algorithm {
 
     public static void OnRecvAccept(PaxosLog log, Packet acceptPacket, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket) {
         State state = log.getRepLog().get(acceptPacket.LogIndex).getCurState();
+        if (acceptPacket.propNum >= state.maxPrep) {
+            state.accNum = acceptPacket.propNum;
+            state.accValue = acceptPacket.accValue;
+            state.maxPrep = acceptPacket.propNum;
 
+            UdpSender udpSender = new UdpSender(datagramSocket, hashPorts.get(acceptPacket.siteName)[0], acceptPacket.siteName, ackPacket);
+        }
     }
 
 
