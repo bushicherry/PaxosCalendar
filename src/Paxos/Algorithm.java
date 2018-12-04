@@ -112,13 +112,32 @@ public class Algorithm {
 
 
     /**
-     * send accept to a certain
+     * On receiving promise(accNum,accVal):
+     * 1> update State.accNum and accVal when accNum is larger than the stored value
+     * 2> add up the counter and check if it reaches majority
+     * 3> if so, send packet to all other sites
      * @param log
+     * @param promisePacket
      * @param myName
      * @param hashPorts
      * @param datagramSocket
      */
-    public static void SendAccept(PaxosLog log, String myName, HashMap<String, int[] > hashPorts,  DatagramSocket datagramSocket) {
+    public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket) {
+        State state = log.getRepLog().get(promisePacket.LogIndex).getCurState();
+        if (promisePacket.accNum > state.accNum) {
+            state.accNum = promisePacket.accNum;
+            state.accValue = promisePacket.accValue;
+        }
+        state.propMaj++;
+        if (state.propMaj > hashPorts.size()/2) {
+            Packet acceptPacket = new Packet(log.getLastPropNum(), 0, state.accValue, 2, promisePacket.LogIndex, hashPorts.get(myName)[1], myName, null, null);
+            sendToAll(myName,hashPorts,datagramSocket,acceptPacket);
+        }
+    }
+
+
+    public static void OnRecvAccept(PaxosLog log, Packet acceptPacket, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket) {
+        State state = log.getRepLog().get(acceptPacket.LogIndex).getCurState();
 
     }
 
