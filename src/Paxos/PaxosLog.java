@@ -49,12 +49,32 @@ public class PaxosLog implements Serializable {
     }
 
     // insert a LogEntry
-    public void insertLogEntry(LogEntry l){ // l is a new LogEntry
-        this.repLog.add(l);
-        if(l.getMeeting() == null){
-            this.EmptyLog.add(l);
+    public void insertLogEntry(LogEntry logEntry){ // l is a new LogEntry
+        this.repLog.add(logEntry);
+        if(logEntry.isEmpty()){
+            this.EmptyLog.add(logEntry);
         }
     }
+
+    public void addLogEntry(int type, int propNum, meetingInfo value) {
+        LogEntry logEntry = new LogEntry(siteID,repLog.size(),type,propNum,value);
+        insertLogEntry(logEntry);
+    }
+
+    public boolean isEmpty(int logIndex) {
+        return repLog.get(logIndex).isEmpty();
+    }
+
+    public int getProposalNumber(int logIndex) {
+        return repLog.get(logIndex).getPropNum();
+    }
+
+    public int addUpProposalNumber(int logIndex) throws RuntimeException{
+        if (!repLog.get(logIndex).isEmpty()) throw new RuntimeException("Not a hole! Cannot change the proposal number!");
+        repLog.get(logIndex).setPropNum(repLog.get(logIndex).getPropNum()+100);
+        return repLog.get(logIndex).getPropNum();
+    }
+
 
     /**
      * insert a value to empty hole
@@ -63,7 +83,7 @@ public class PaxosLog implements Serializable {
      * @return true if successfully inserted, false if not
      */
     public boolean fillTheHole(int Index, meetingInfo value){
-        if(repLog.get(Index).getMeeting() != null){
+        if(!repLog.get(Index).isEmpty()){
             System.err.println("Not a hole");
             return false;
         }
@@ -73,11 +93,13 @@ public class PaxosLog implements Serializable {
     }
 
 
-    // check if there is any empty hole exist
+    // check if there is any empty hole
     public boolean IfHoleExist(){
         return EmptyLog.size() != 0;
     }
-    // return the array of missing log emtry index
+
+
+    // return the array of indexes of holes (empty log entries)
     public int[] MissingLogIndex(){
         if(EmptyLog.size() == 0) return null;
         int [] i = new int[EmptyLog.size()];
@@ -88,8 +110,8 @@ public class PaxosLog implements Serializable {
     }
 
 
-    //print_out LogEntry
-    void LogArrayPrint(){
+    //print out all LogEntry
+    void PrintLog(){
 
         for(LogEntry l: repLog){
             if(l.getMeeting() != null) {
@@ -110,22 +132,25 @@ public class PaxosLog implements Serializable {
         // -> 0 for cancel
         // -> 1 for schedule
         // unique ID for each LogEntry,the accNum in synod algorithm
-        int uniqueID; // proposal number
+        private int uniqueID; // proposal number
         // value v
         meetingInfo meeting;
         // state for this log
         State CurState ;// current state
 
 
-        public LogEntry(int siteID, int LgIndex, int type, int ID, meetingInfo value)  {
+        public LogEntry(int siteID, int LogIndex, int type, int propNum, meetingInfo value)  {
             this.type = type;
-            this.uniqueID = ID; // the accNum in synod algorithm
+            this.uniqueID = propNum; // the accNum in synod algorithm
             this.meeting = value;
-            this.LogIndex = LgIndex;
+            this.LogIndex = LogIndex;
             this.siteID = siteID; // in anther word, SiteID
             this.CurState = new State();
         }
 
+        public void setPropNum(int newPropNum) {
+            uniqueID = newPropNum;
+        }
 
         public meetingInfo getMeeting(){
             return this.meeting;
