@@ -31,7 +31,6 @@ public class Dictionary {
      * @return true if conflict, false if not
      */
     public synchronized boolean checkConflict(meetingInfo m) {
-        boolean conflict = false;
         timeOrderedSet.add(m);
         int[] myEnd = m.getEnd();
         int[] myStart = m.getStart();
@@ -42,7 +41,7 @@ public class Dictionary {
             return true;
         }
         timeOrderedSet.remove(m);
-        return conflict;
+        return false;
     }
 
     /**
