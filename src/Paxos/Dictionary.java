@@ -5,11 +5,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.TreeSet;
 
-//class CompareTime implements Comparator<meetingInfo> {
-//    public int compare(meetingInfo m1, meetingInfo m2) {
-//        return m1.compareTo(m2);
-//    }
-//}
+class CompareTime implements Comparator<meetingInfo> , Serializable{
+    private static final long serialVersionUID = 1;
+    public int compare(meetingInfo m1, meetingInfo m2) {
+        return m1.compareTo(m2);
+    }
+}
 
 public class Dictionary implements Serializable {
     private TreeSet<meetingInfo> timeOrderedSet;
@@ -20,8 +21,7 @@ public class Dictionary implements Serializable {
      * Constructor
      */
     public Dictionary() {
-        Comparator<meetingInfo> compareTime = (meetingInfo m1, meetingInfo m2) -> (m1.compareTo(m2));
-        timeOrderedSet = new TreeSet<>(compareTime);
+        timeOrderedSet = new TreeSet<>(new CompareTime());
         mapByName = new HashMap<>();
         mapByUser = new HashMap<>();
     }
@@ -101,7 +101,7 @@ public class Dictionary implements Serializable {
             if (mapByUser.containsKey(u)) {
                 mapByUser.get(u).add(m);
             } else {
-                TreeSet<meetingInfo> ts = new TreeSet<>((meetingInfo m1, meetingInfo m2) -> (m1.compareTo(m2)));
+                TreeSet<meetingInfo> ts = new TreeSet<>(new CompareTime());
                 ts.add(m);
                 mapByUser.put(u, ts);
             }
