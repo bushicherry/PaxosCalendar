@@ -69,7 +69,7 @@ public class Algorithm {
         ArrayList<PaxosLog.LogEntry> tempList = new ArrayList<>();
         for(int i = 0; i < pac.missingIndexList.length; i++){
             int Index = pac.missingIndexList[i];
-            if(Index > pLog.getRepLog().size())break;
+            if(Index >= pLog.getRepLog().size())break;
             if(pLog.getRepLog().get(Index).getMeeting() != null){
                 tempList.add(pLog.getRepLog().get(Index));
                 ind++;
