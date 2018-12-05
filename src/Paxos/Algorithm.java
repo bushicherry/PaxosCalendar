@@ -1,8 +1,6 @@
 package Paxos;
 
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
-import sun.tools.jconsole.Plotter;
 
 import java.net.DatagramSocket;
 import java.util.ArrayList;
