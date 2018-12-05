@@ -162,7 +162,11 @@ public class PaxosLog implements Serializable {
 
 
     public boolean checkIfCancelExists(String meetingName) {
-
+        for (LogEntry le : repLog) {
+            if (le.meeting != null && le.meeting.getUser() == null && le.meeting.getName().equals(meetingName))
+                return true;
+        }
+        return false;
     }
 
 
