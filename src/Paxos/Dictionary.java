@@ -1,16 +1,17 @@
 package Paxos;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.TreeSet;
 
-class CompareTime implements Comparator<meetingInfo> {
-    public int compare(meetingInfo m1, meetingInfo m2) {
-        return m1.compareTo(m2);
-    }
-}
+//class CompareTime implements Comparator<meetingInfo> {
+//    public int compare(meetingInfo m1, meetingInfo m2) {
+//        return m1.compareTo(m2);
+//    }
+//}
 
-public class Dictionary {
+public class Dictionary implements Serializable {
     private TreeSet<meetingInfo> timeOrderedSet;
     private HashMap<String, meetingInfo> mapByName;
     private HashMap<String, TreeSet<meetingInfo>> mapByUser;
@@ -19,7 +20,8 @@ public class Dictionary {
      * Constructor
      */
     public Dictionary() {
-        timeOrderedSet = new TreeSet<>(new CompareTime());
+        Comparator<meetingInfo> compareTime = (meetingInfo m1, meetingInfo m2) -> (m1.compareTo(m2));
+        timeOrderedSet = new TreeSet<>(compareTime);
         mapByName = new HashMap<>();
         mapByUser = new HashMap<>();
     }
@@ -99,7 +101,7 @@ public class Dictionary {
             if (mapByUser.containsKey(u)) {
                 mapByUser.get(u).add(m);
             } else {
-                TreeSet<meetingInfo> ts = new TreeSet<>(new CompareTime());
+                TreeSet<meetingInfo> ts = new TreeSet<>((meetingInfo m1, meetingInfo m2) -> (m1.compareTo(m2)));
                 ts.add(m);
                 mapByUser.put(u, ts);
             }
