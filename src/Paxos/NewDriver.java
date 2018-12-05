@@ -110,7 +110,6 @@ public class NewDriver {
 
             command = commandS.next();
             if (command.equals("schedule")) {
-
                 // construct date, start, end
                 int[] date = new int[3];
                 int[] startTime = new int[2];
@@ -153,8 +152,28 @@ public class NewDriver {
                     continue;
                 }
 
+                // when the site is the only site in the system, then it doen't have to
+                // execute the Paxos algorithm
+                if (numOfHosts == 1) {
+                    dictionary.add()
+                }
+
                 // set up meetingInfo, and do insert
                 //=========
+
+                // when the site is the only site in the system, then it doen't have to
+                // execute the Paxos algorithm
+                if (numOfHosts == 1) {
+                    if (dictionary.add()) {
+                        log.insertLogEntry();
+                        System.out.println();
+                    } else {
+                        System.out.println();
+                    }
+                    continue;
+                }
+
+
                 // if holes
                 // send fill hole request
 

@@ -8,13 +8,14 @@ public class State implements Serializable {
     // 0 --> no state
     // 1 --> In Synod Algorithm
 
-    // required variable in synod algorithm
+    // State as Acceptor
     public int maxPrep;
     public int accNum;
     public meetingInfo accValue;
 
+    // State as proposal
     // for majority detection
-    public int propMaj; // count the number of propose reponse
+    public int propMaj; // count the number of propose response
     public int ackMaj;// count the number of ack response
 
     public State (){
@@ -23,6 +24,14 @@ public class State implements Serializable {
         accNum = 0;
         accValue = null;
         propMaj = 1;
+        ackMaj = 1;
+    }
+
+    public void clearPropMaj() {
+        propMaj = 1;
+    }
+
+    public void clearAckMaj() {
         ackMaj = 1;
     }
 }

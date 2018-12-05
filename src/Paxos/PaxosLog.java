@@ -19,9 +19,10 @@ public class PaxosLog implements Serializable {
         this.siteID = siteID;
     }
 
+    // copy constructor
     public PaxosLog(PaxosLog pLog){
         this.repLog = pLog.getRepLog();
-        this.lastPropNum = pLog.getLastPropNum();
+//        this.lastPropNum = pLog.getLastPropNum();
         EmptyLog = pLog.getEmptyLog();
 
     }
@@ -30,10 +31,10 @@ public class PaxosLog implements Serializable {
     public ArrayList<LogEntry> getRepLog(){
         return this.repLog;
     }
-
-    public int getLastPropNum(){
-        return lastPropNum;
-    }
+//
+//    public int getLastPropNum(){
+//        return lastPropNum;
+//    }
 
     public Vector<PaxosLog.LogEntry> getEmptyLog() {
         return EmptyLog;
@@ -47,18 +48,23 @@ public class PaxosLog implements Serializable {
         return siteID;
     }
 
-    // insert an LogEntry
-    public void insertLog(LogEntry l){ // l is a new LogEntry
+    // insert a LogEntry
+    public void insertLogEntry(LogEntry l){ // l is a new LogEntry
         this.repLog.add(l);
         if(l.getMeeting() == null){
             this.EmptyLog.add(l);
         }
     }
 
-    // insert a value to empty hole
-    public boolean insertEmptyLog(int Index, meetingInfo value){
+    /**
+     * insert a value to empty hole
+     * @param Index
+     * @param value
+     * @return true if successfully inserted, false if not
+     */
+    public boolean fillTheHole(int Index, meetingInfo value){
         if(repLog.get(Index).getMeeting() != null){
-            System.out.println("Not a hole, but a value is intended to be inserted");
+            System.err.println("Not a hole");
             return false;
         }
         this.repLog.get(Index).setMeeting(value);
@@ -98,7 +104,7 @@ public class PaxosLog implements Serializable {
 
     public static class LogEntry implements Serializable {
         // 0 -> schedule; 1 -> cancel
-        int ProposerID; // siteID
+        int siteID; // siteID
         int LogIndex;
         int type;
         // -> 0 for cancel
@@ -111,12 +117,12 @@ public class PaxosLog implements Serializable {
         State CurState ;// current state
 
 
-        public LogEntry(int ProposerID,int LgIndex, int type, int ID, meetingInfo value)  {
+        public LogEntry(int siteID, int LgIndex, int type, int ID, meetingInfo value)  {
             this.type = type;
             this.uniqueID = ID; // the accNum in synod algorithm
             this.meeting = value;
             this.LogIndex = LgIndex;
-            this.ProposerID = ProposerID; // in anther word, SiteID
+            this.siteID = siteID; // in anther word, SiteID
             this.CurState = new State();
         }
 
@@ -141,11 +147,20 @@ public class PaxosLog implements Serializable {
             return this.LogIndex;
         }
         public int getSiteID(){
-            return this.ProposerID;
+            return this.siteID;
         }
 
         public State getCurState(){
             return CurState;
+        }
+
+        /**
+         * check if the log entry is a hole, or in another word, is empty
+         * @return true if empty, false if not
+         */
+        public boolean isEmpty() {
+            if (meeting == null) return true;
+            else return false;
         }
 
     }

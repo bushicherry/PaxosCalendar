@@ -1,10 +1,10 @@
 package Paxos;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
 
 import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class Algorithm {
 
@@ -55,7 +55,7 @@ public class Algorithm {
             int hisAccNum = pac.RespLogArray.get(i).getCurState().accNum;
             if( myAccNum <= hisAccNum ){
                 Plog.getRepLog().get(ind).getCurState().accNum = hisAccNum;
-                Plog.insertEmptyLog(ind,pac.RespLogArray.get(i).getMeeting());
+                Plog.fillTheHole(ind,pac.RespLogArray.get(i).getMeeting());
             }
         }
     }
@@ -73,7 +73,7 @@ public class Algorithm {
             int hisAccNum = pac.RespLogArray.get(i).getCurState().accNum;
             if( myAccNum <= hisAccNum ){
                 Plog.getRepLog().get(ind).getCurState().accNum = hisAccNum;
-                Plog.insertEmptyLog(ind,pac.RespLogArray.get(i).getMeeting());
+                Plog.fillTheHole(ind,pac.RespLogArray.get(i).getMeeting());
             }
         }
         if(!Plog.IfHoleExist()){
@@ -105,7 +105,7 @@ public class Algorithm {
         // Add an empty log into Paxoslog
         int index = Plog.getRepLog().size();
         PaxosLog.LogEntry log1 = new PaxosLog.LogEntry(HashPorts.get(myname)[1],index, 0, PropNum, null);
-        Plog.insertLog(log1);
+        Plog.insertLogEntry(log1);
         Packet tempPac = new Packet(PropNum, 0, null, 0, index,Plog.getSiteID(),myname, null,null);
         sendToAll(myname, HashPorts, socket, tempPac);
     }
@@ -122,7 +122,7 @@ public class Algorithm {
      * @param socket
      */
 
-    public static void RecvProp(Packet pac, PaxosLog Plog, String myname, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
+    public static void OnRecvProposal(Packet pac, PaxosLog Plog, String myname, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
         // fill the hole if exists
 
     }
@@ -137,22 +137,25 @@ public class Algorithm {
      * On receiving promise(accNum,accVal):
      * 1> update State.accNum and accVal when accNum is larger than the stored value
      * 2> add up the counter and check if it reaches majority
-     * 3> if so, send packet to all other sites
-     * @param log
-     * @param promisePacket
-     * @param myName
-     * @param hashPorts
-     * @param datagramSocket
+     * 3> if so, cancel the scheduled post-timeout re-proposing process(es)
+     *      and then send accept to all other sites
+     * @param log contains all the local log entries
+     * @param promisePacket the received promise packet
+     * @param myName the name of the site
+     * @param hashPorts a hashmap that maps the site ports and IDs to site names
+     * @param datagramSocket the udp socket of current site
+     * @param delayedRepropose the delayed thread executor for timeout
      */
-    public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket) {
+    public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
         State state = log.getRepLog().get(promisePacket.LogIndex).getCurState();
         if (promisePacket.accNum > state.accNum) {
             state.accNum = promisePacket.accNum;
             state.accValue = promisePacket.accValue;
         }
         state.propMaj++;
-        if (state.propMaj > hashPorts.size()/2) {
-            Packet acceptPacket = new Packet(log.getLastPropNum(), 0, state.accValue, 2, promisePacket.LogIndex, hashPorts.get(myName)[1], myName, null, null);
+        if (state.propMaj == hashPorts.size()/2 + 1) { //Only send out accept to all when getting promise from majority, and only do this for once
+            delayedRepropose.shutdownNow(); //Cancel the scheduled post-timeout re-proposing process(es)
+            Packet acceptPacket = new Packet(, 0, state.accValue, 2, promisePacket.LogIndex, hashPorts.get(myName)[1], myName, null, null);
             sendToAll(myName,hashPorts,datagramSocket,acceptPacket);
         }
     }
@@ -162,7 +165,7 @@ public class Algorithm {
      * 1> check if the received proposal number is greater or equal to the maxPrepare stored
      *      in the state
      * 2> if true, update the state(accNum,accValue,maxPrepare) of the log entry
-     *      and send ack to the proposer
+     *      and then send ack to the proposer
      * @param log
      * @param acceptPacket
      * @param hashPorts
@@ -177,6 +180,30 @@ public class Algorithm {
             Packet ackPacket = new Packet(0, state.accNum, state.accValue, 3, acceptPacket.LogIndex, 0, null, null, null);
             UdpSender udpSender = new UdpSender(datagramSocket, hashPorts.get(acceptPacket.siteName)[0], acceptPacket.siteName, ackPacket);
             new Thread(udpSender).start();
+        }
+    }
+
+    /**
+     * On receiving ack:
+     * 1> add up the counter and check if it reaches majority
+     * 2> if so, update send commit to all
+     * @param log
+     * @param ackPacket
+     * @param myName
+     * @param hashPorts
+     * @param datagramSocket
+     * @param delayedRepropose
+     */
+    public static void OnRecvAck(PaxosLog log, Packet ackPacket, String myName, HashMap<String, int[] > hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
+        State state = log.getRepLog().get(ackPacket.LogIndex).getCurState();
+        //Does not have to check accNum or accVal when receiving ack
+        state.ackMaj++;
+        //Only send out commit to all when getting ack from majority, and only do this for once
+        if (state.ackMaj == hashPorts.size()/2 + 1) {
+            delayedRepropose.shutdownNow(); //Cancel the scheduled post-timeout re-proposing process(es)
+
+            Packet commitPacket = new Packet(0,0, state.accValue, 4, ackPacket.LogIndex, 0, null, null, null);
+            sendToAll(myName,hashPorts,datagramSocket,ackPacket);
         }
     }
 
