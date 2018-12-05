@@ -39,7 +39,7 @@ public class Dictionary {
         int[] lowStart = timeOrderedSet.lower(m).getStart();
         if (highEnd[0]>myStart[0] || (highEnd[0]==myStart[0] && highEnd[1]>myStart[1]) ||
                 myEnd[0]>lowStart[0] || (myEnd[0]==lowStart[0] && myEnd[1]>lowStart[1])) {
-            return true;
+            conflict = true;
         }
         timeOrderedSet.remove(m);
         return conflict;
