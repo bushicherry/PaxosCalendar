@@ -8,6 +8,17 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class Algorithm {
 
+    /**
+     * Ask the max number of log
+     */
+    public static void askForMaxLog(){
+
+    }
+
+    /**
+     * When recv the
+     */
+
 
     /**
      * fill hole then send propose
@@ -64,7 +75,7 @@ public class Algorithm {
      * for real
      */
 
-    public static void fillHoleResp(Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
+    public static void fillHoleResp(Dictionary dic, Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
         if(!Plog.IfHoleExist()) return;
         int recvLognum = pac.RespLogArray.size();
         for(int i = 0; i < recvLognum;i++){
@@ -78,8 +89,22 @@ public class Algorithm {
         }
         if(!Plog.IfHoleExist()){
             if(pac.accValue != null) {
+                if(pac.accValue.getUser() == null){ // cancel
+                    // if there exist meeting, if not, unable to schedule
+
+                    //
+                    System.out.println("Unable to cancel meeting" + pac.accValue.getName());
+
+                } else {
+                    // schedule
+                    // check if conflict
+                    if(dic.checkConflict(pac.accValue)){
+                        System.out.println("Unable to cancel meeting" + pac.accValue.getName());
+                        return;
+                    }
+                }
                 Propose(pac.accValue, Plog, myName, HashPorts, socket);
-                System.out.println("Poposed, wait for response");
+                System.err.println("Proposed, wait for response");
             } else {
                 // do CheckPoint
 
