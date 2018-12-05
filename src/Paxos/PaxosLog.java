@@ -161,6 +161,11 @@ public class PaxosLog implements Serializable {
     }
 
 
+    public boolean checkIfCancelExists(String meetingName) {
+
+    }
+
+
     //print out all LogEntry
     void PrintLog(){
 

@@ -139,7 +139,7 @@ public class NewDriver {
                                 }
                                 // receive commit
                                 else if (packet.packetType == 4) {
-                                    Algorithm.OnRecvCommit(log,packet);
+                                    Algorithm.OnRecvCommit(dictionary,log,packet);
                                 }
                                 // receive fill holes request
                                 else if (packet.packetType == 6) {
