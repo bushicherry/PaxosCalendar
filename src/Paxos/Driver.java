@@ -249,7 +249,7 @@ public class Driver {
                 if (numOfHosts == 1) {
                     if (dictionary.add(proposedMeeting)) {
                         log.addLogEntry(1, 0, proposedMeeting, proposedMeeting);
-                        System.out.println("Schedule " + proposedMeeting.toString() + ".");
+                        System.out.println("meeting " + name + " scheduled.");
                     } else {
                         System.out.println("Unable to schedule meeting " + proposedMeeting.getName() + ".");
                     }

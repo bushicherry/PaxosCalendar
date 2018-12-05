@@ -138,6 +138,7 @@ public class Algorithm {
                         return;
                     }
                 }
+
                 propose(pac.accValue, Plog, myName, HashPorts, socket);
 
                 // for debugging
@@ -320,7 +321,7 @@ public class Algorithm {
 
                     System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 } else { // schedule event
-                    System.out.println("Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
+                    System.out.println("Meeting " +log.getRepLog().get(ackPacket.LogIndex).meeting.getName() +  " scheduled.");
                 }
             } else {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
@@ -365,7 +366,7 @@ public class Algorithm {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
                 System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             } else { // schedule event
-                System.out.println("Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
+                System.out.println("Meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + " scheduled");
             }
         } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) { // is a proposer
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
@@ -410,6 +411,7 @@ public class Algorithm {
             oi1.close();
             fi1.close();
 
+
             // for dictionary
             FileInputStream fi2 = new FileInputStream(new File("dic.txt"));
             ObjectInputStream oi2 = new ObjectInputStream(fi2);
@@ -430,7 +432,7 @@ public class Algorithm {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
-            System.out.println("Error initializing stream");
+            System.out.println("Error initializing stream for read");
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -443,7 +445,6 @@ public class Algorithm {
     /**
      *
      * @param log
-     * @param dic
      */
 
     public static void writeLog2File(PaxosLog log){
@@ -459,11 +460,11 @@ public class Algorithm {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
-            System.out.println("Error initializing stream");
+            System.out.println("Error initializing stream for log write" );
         }
     }
 
-    public static void writeDicFile(Dictionary dic){
+    public static void writeDic2File(Dictionary dic){
         try {
             // for log
             FileOutputStream f = new FileOutputStream(new File("dic.txt"));
@@ -476,8 +477,31 @@ public class Algorithm {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
-            System.out.println("Error initializing stream");
+            System.out.println("Error initializing stream for dic write");
         }
+    }
+
+    public static PaxosLog readlog(){
+        PaxosLog myLog = null;
+        try {
+            // for log
+            FileInputStream fi1 = new FileInputStream(new File("log.txt"));
+            ObjectInputStream oi1 = new ObjectInputStream(fi1);
+            // Read objects
+            myLog = (PaxosLog) oi1.readObject();
+            oi1.close();
+            fi1.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        } catch (IOException e) {
+            System.out.println("Error initializing stream for read");
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return myLog;
     }
 
 
