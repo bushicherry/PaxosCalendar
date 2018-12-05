@@ -164,9 +164,8 @@ public class Algorithm {
      * @param myName the name of the site
      * @param hashPorts a hashmap that maps the site ports and IDs to site names
      * @param datagramSocket the udp socket of current site
-     * @param delayedRepropose the delayed thread executor for timeout
      */
-    public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
+    public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket) {
         State state = log.getRepLog().get(promisePacket.LogIndex).getCurState();
         if (state.state > 0) return;
         if (promisePacket.accNum > state.accNum) {
@@ -220,7 +219,7 @@ public class Algorithm {
      * @param myName
      * @param hashPorts
      * @param datagramSocket
-     * @param delayedRepropose
+     * @param delayedRepropose the delayed thread executor for timeout
      */
     public static void OnRecvAck(PaxosLog log, Packet ackPacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
         State state = log.getRepLog().get(ackPacket.LogIndex).getCurState();
@@ -253,7 +252,8 @@ public class Algorithm {
 
     /**
      * On receiving commit:
-     *
+     * 1> fill in the value
+     * 2> if the site is a proposer, output result on commondline
      * @param log
      * @param commitPacket
      */
@@ -269,7 +269,7 @@ public class Algorithm {
             } else { // schedule event
                 System.out.println("Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString());
             }
-        } else {
+        } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
                 System.out.println("Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
             } else {
