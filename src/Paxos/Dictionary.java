@@ -33,28 +33,21 @@ public class Dictionary {
     public synchronized boolean checkConflict(meetingInfo m) {
         boolean conflict = false;
         timeOrderedSet.add(m);
-        int[] myEnd = m.getEnd();
-        int[] myStart = m.getStart();
         meetingInfo high = timeOrderedSet.higher(m);
         meetingInfo low = timeOrderedSet.lower(m);
         //check if the higher element and the lower element exists
         if (high == null && low == null) {
-            conflict = true;
+            conflict = false;
         } else if (high == null) {
-            int[] lowEnd = timeOrderedSet.lower(m).getEnd();
-            if (lowEnd[0]>myStart[0] || (lowEnd[0]==myStart[0] && lowEnd[1]>myStart[1])) {
+            if (low.checkConflict(m)) {
                 conflict = true;
             }
         } else if (low == null) {
-            int[] highStart = timeOrderedSet.higher(m).getStart();
-            if (myEnd[0]>highStart[0] || (myEnd[0]==highStart[0] && myEnd[1]>highStart[1])) {
+            if (m.checkConflict(high)) {
                 conflict = true;
             }
         } else {
-            int[] lowEnd = timeOrderedSet.lower(m).getEnd();
-            int[] highStart = timeOrderedSet.higher(m).getStart();
-            if (lowEnd[0]>myStart[0] || (lowEnd[0]==myStart[0] && lowEnd[1]>myStart[1]) ||
-                    myEnd[0]>highStart[0] || (myEnd[0]==highStart[0] && myEnd[1]>highStart[1])) {
+            if (low.checkConflict(m) || m.checkConflict(high)) {
                 conflict = true;
             }
         }
@@ -70,8 +63,6 @@ public class Dictionary {
      */
     public synchronized boolean add(meetingInfo m) {
         timeOrderedSet.add(m);
-        int[] myEnd = m.getEnd();
-        int[] myStart = m.getStart();
         meetingInfo high = timeOrderedSet.higher(m);
         meetingInfo low = timeOrderedSet.lower(m);
         //check if the higher element and the lower element exists
@@ -79,26 +70,21 @@ public class Dictionary {
             addHelper(m);
             return true;
         } else if (high == null) {
-            int[] lowEnd = timeOrderedSet.lower(m).getEnd();
-            if (lowEnd[0]>myStart[0] || (lowEnd[0]==myStart[0] && lowEnd[1]>myStart[1])) {
+            if (low.checkConflict(m)) {
                 timeOrderedSet.remove(m);
                 return false;
             }
             addHelper(m);
             return true;
         } else if (low == null) {
-            int[] highStart = timeOrderedSet.higher(m).getStart();
-            if (myEnd[0]>highStart[0] || (myEnd[0]==highStart[0] && myEnd[1]>highStart[1])) {
+            if (m.checkConflict(high)) {
                 timeOrderedSet.remove(m);
                 return false;
             }
             addHelper(m);
             return true;
         } else {
-            int[] lowEnd = timeOrderedSet.lower(m).getEnd();
-            int[] highStart = timeOrderedSet.higher(m).getStart();
-            if (lowEnd[0]>myStart[0] || (lowEnd[0]==myStart[0] && lowEnd[1]>myStart[1]) ||
-                    myEnd[0]>highStart[0] || (myEnd[0]==highStart[0] && myEnd[1]>highStart[1])) {
+            if (low.checkConflict(m) || m.checkConflict(high)) {
                 timeOrderedSet.remove(m);
                 return false;
             }

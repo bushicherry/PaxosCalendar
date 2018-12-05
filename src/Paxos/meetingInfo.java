@@ -102,4 +102,13 @@ public class meetingInfo implements Serializable {
         }
         return date[0] - obj.getDate()[0];
     }
+
+    public boolean checkConflict(meetingInfo m) {
+        if (date[0] == m.getDate()[0] && date[1] == m.getDate()[1] && date[2] == m.getDate()[2]) {
+            if (end[0]>m.getStart()[0] || (end[0]==m.getStart()[0] && end[1]>m.getStart()[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
