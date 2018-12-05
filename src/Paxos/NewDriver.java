@@ -5,10 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class NewDriver {
     public static void main(String[] args) throws SocketException {
@@ -51,6 +48,7 @@ public class NewDriver {
         // set up timeout processes
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
         executor.setRemoveOnCancelPolicy(true);
+        final ScheduledFuture<?>[] sf = {};
 
         // set up a queue of unfinished operations (schedule or cancel)
         final Queue<meetingInfo> operations = new ConcurrentLinkedQueue<>();
@@ -61,32 +59,36 @@ public class NewDriver {
                 while (true) {
                     meetingInfo currentOperation = operations.poll();
                     if (currentOperation != null) {
+                        Runnable delayedOperation = new Runnable() {
+                            @Override
+                            public void run() {
+                                Algorithm.rePropose(log.getCurrentLogIndex(),log,myName,hostsPorts,socket);
+                            }
+                        };
+                        executor.schedule(delayedOperation, 1, TimeUnit.SECONDS);
+                        executor.schedule(delayedOperation, 2, TimeUnit.SECONDS);
+                        sf[0] = executor.schedule(new Runnable() {
+                            @Override
+                            public void run() {
+                                // remove the empty log
+                                log.getRepLog().remove(log.getCurrentLogIndex());
+
+                                if (currentOperation.getUser() == null) { // cancel event
+                                    System.out.println("Unable to cancel meeting " + currentOperation.getName() + ".");
+                                } else {
+                                    System.out.println("Unable to schedule meeting " + currentOperation.getName() + ".");
+                                }
+                            }
+                        }, 3, TimeUnit.SECONDS);
+
                         if (log.IfHoleExist()) {
                             Algorithm.fillHolesReq(log, socket, currentOperation, hostsPorts, myName);
                         } else {
-                            Runnable delayedOperation = new Runnable() {
-                                @Override
-                                public void run() {
-                                    Algorithm.rePropose(log.getCurrentLogIndex(),log,myName,hostsPorts,socket);
-                                }
-                            };
                             Algorithm.propose(currentOperation, log, myName, hostsPorts, socket);
-                            executor.schedule(delayedOperation, 1, TimeUnit.SECONDS);
-                            executor.schedule(delayedOperation, 2, TimeUnit.SECONDS);
-                            executor.schedule(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // remove the Emptylog
-                                    ??
-
-                                    if (currentOperation.getUser() == null) { // cancel event
-                                        System.out.println("Unable to cancel meeting " + currentOperation.getName() + ".");
-                                    } else {
-                                        System.out.println("Unable to schedule meeting " + currentOperation.getName() + ".");
-                                    }
-                                }
-                            }, 3, TimeUnit.SECONDS);
                         }
+
+                        //block the processor thread before timeout ends or shutdown
+                        while (!sf[0].isDone()) {}
                     }
                 }
             }
@@ -118,6 +120,7 @@ public class NewDriver {
                             try {
                                 in = new ObjectInputStream(bis);
                                 Packet packet = (Packet) in.readObject();
+
                                 // receive prepare
                                 if (packet.packetType == 0) {
                                     Algorithm.OnRecvPrepare(packet,log,hostsPorts,socket);

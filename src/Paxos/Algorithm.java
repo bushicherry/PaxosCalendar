@@ -5,7 +5,6 @@ import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class Algorithm {
 
@@ -111,29 +110,6 @@ public class Algorithm {
                     }
                 }
                 propose(pac.accValue, Plog, myName, HashPorts, socket);
-
-                // schedule timeout operations
-                Runnable delayedOperation = new Runnable() {
-                    @Override
-                    public void run() {
-                        Algorithm.rePropose(Plog.getCurrentLogIndex(),Plog,myName,HashPorts,socket);
-                    }
-                };
-                executor.schedule(delayedOperation, 1, TimeUnit.SECONDS);
-                executor.schedule(delayedOperation, 2, TimeUnit.SECONDS);
-                executor.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        // remove the Emptylog
-                                    ??
-
-                        if (pac.accValue.getUser() == null) { // cancel event
-                            System.out.println("Unable to cancel meeting " + pac.accValue.getName() + ".");
-                        } else {
-                            System.out.println("Unable to schedule meeting " + pac.accValue.getName() + ".");
-                        }
-                    }
-                }, 3, TimeUnit.SECONDS);
 
                 // for debugging
                 System.err.println("Proposed, wait for response");
