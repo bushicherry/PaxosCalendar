@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Algorithm {
 
@@ -78,7 +79,7 @@ public class Algorithm {
      * for real
      */
 
-    public static void fillHoleResp(Dictionary dic, Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
+    public static void fillHoleResp(Dictionary dic, Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket, ScheduledThreadPoolExecutor executor){
         if(!Plog.IfHoleExist()) return;
         int recvLognum = pac.RespLogArray.size();
         for(int i = 0; i < recvLognum;i++){
@@ -109,7 +110,32 @@ public class Algorithm {
                         return;
                     }
                 }
-                Propose(pac.accValue, Plog, myName, HashPorts, socket);
+                propose(pac.accValue, Plog, myName, HashPorts, socket);
+
+                // schedule timeout operations
+                Runnable delayedOperation = new Runnable() {
+                    @Override
+                    public void run() {
+                        Algorithm.rePropose(Plog.getCurrentLogIndex(),Plog,myName,HashPorts,socket);
+                    }
+                };
+                executor.schedule(delayedOperation, 1, TimeUnit.SECONDS);
+                executor.schedule(delayedOperation, 2, TimeUnit.SECONDS);
+                executor.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        // remove the Emptylog
+                                    ??
+
+                        if (pac.accValue.getUser() == null) { // cancel event
+                            System.out.println("Unable to cancel meeting " + pac.accValue.getName() + ".");
+                        } else {
+                            System.out.println("Unable to schedule meeting " + pac.accValue.getName() + ".");
+                        }
+                    }
+                }, 3, TimeUnit.SECONDS);
+
+                // for debugging
                 System.err.println("Proposed, wait for response");
             } else {
                 // do CheckPoint
@@ -131,7 +157,7 @@ public class Algorithm {
      * Before doing proposal, you should check if there is any hole exists.
      * If not, call fillHolesReq instead.
      */
-    public static void Propose(meetingInfo proposedMeeting, PaxosLog Plog, String myname, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket) {
+    public static void propose(meetingInfo proposedMeeting, PaxosLog Plog, String myname, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket) {
         // get a new proposer number:
         int PropNum = Plog.getSiteID() + 100;
         // Add an empty log into Paxoslog
@@ -168,11 +194,10 @@ public class Algorithm {
      * 3> if so, update maxPrepare and then send promise package to the proposer
      * @param preparePacket
      * @param log
-     * @param myName
      * @param hashPorts
      * @param datagramSocket
      */
-    public static void OnRecvPrepare(Packet preparePacket, PaxosLog log, String myName, HashMap<String, int[]> hashPorts,  DatagramSocket datagramSocket) {
+    public static void OnRecvPrepare(Packet preparePacket, PaxosLog log, HashMap<String, int[]> hashPorts,  DatagramSocket datagramSocket) {
         //add holes if the log entry does not exist
         boolean isProposer = log.checkIfLogEntryExist(preparePacket.LogIndex); // true means I am concurrent proposer
         log.updateLogIndex(preparePacket.LogIndex);
@@ -265,7 +290,7 @@ public class Algorithm {
      * @param datagramSocket
      * @param delayedRepropose the delayed thread executor for timeout
      */
-    public static void OnRecvAck(PaxosLog log, Packet ackPacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
+    public static void OnRecvAck(Dictionary dictionary, PaxosLog log, Packet ackPacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
         State state = log.getRepLog().get(ackPacket.LogIndex).getCurState();
         if (state.state > 1) return;
         //Does not have to check accNum or accVal when receiving ack
@@ -275,8 +300,19 @@ public class Algorithm {
             state.state = Math.max(2,state.state);
             delayedRepropose.shutdownNow(); //Cancel the scheduled post-timeout re-proposing process(es)
 
-            if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex)) {
+            // commit itself
+            log.fillTheHole(ackPacket.LogIndex,ackPacket.accValue);
+            // execute log to the dictionary
+            boolean success = false;
+            if (ackPacket.accValue.getUser() != null) { //schedule
+                success = dictionary.add(ackPacket.accValue);
+            } else { //cancel
+                success = dictionary.removeByName(ackPacket.accValue.getName());
+            }
+
+            if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex) && success) {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
+
                     System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 } else { // schedule event
                     System.out.println("Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
@@ -301,24 +337,32 @@ public class Algorithm {
      * @param log
      * @param commitPacket
      */
-    public static void OnRecvCommit(PaxosLog log, Packet commitPacket) {
+    public static void OnRecvCommit(Dictionary dictionary, PaxosLog log, Packet commitPacket) {
         //add holes if the log entry does not exist
         boolean isProposer = log.checkIfLogEntryExist(commitPacket.LogIndex); // true means I am concurrent proposer
         log.updateLogIndex(commitPacket.LogIndex);
+
         //Add new log entry if I am not a concurrent proposer
         if (!isProposer) {
             log.addLogEntry(0, commitPacket.propNum, commitPacket.accValue, null);
         } else { // Fill the empty log entry if I am a proposer
             log.fillTheHole(commitPacket.LogIndex, commitPacket.accValue);
         }
+        // Execute the log to the dictionary
+        boolean success = false;
+        if (commitPacket.accValue.getUser() != null) { //schedule
+            success = dictionary.add(commitPacket.accValue);
+        } else { //cancel
+            success = dictionary.removeByName(commitPacket.accValue.getName());
+        }
 
-        if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex)) {
+        if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex) && success) {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
                 System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             } else { // schedule event
                 System.out.println("Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             }
-        } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) {
+        } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) { // is a proposer
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
                 System.out.println("Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
             } else {

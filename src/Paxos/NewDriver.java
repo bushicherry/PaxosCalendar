@@ -5,6 +5,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class NewDriver {
     public static void main(String[] args) throws SocketException {
@@ -44,7 +48,52 @@ public class NewDriver {
         final PaxosLog log = new PaxosLog(myIndex);
         final Dictionary dictionary = new Dictionary();
 
+        // set up timeout processes
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        executor.setRemoveOnCancelPolicy(true);
 
+        // set up a queue of unfinished operations (schedule or cancel)
+        final Queue<meetingInfo> operations = new ConcurrentLinkedQueue<>();
+        // set up a new thread to process operations
+        Runnable operationProcessor = new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    meetingInfo currentOperation = operations.poll();
+                    if (currentOperation != null) {
+                        if (log.IfHoleExist()) {
+                            Algorithm.fillHolesReq(log, socket, currentOperation, hostsPorts, myName);
+                        } else {
+                            Runnable delayedOperation = new Runnable() {
+                                @Override
+                                public void run() {
+                                    Algorithm.rePropose(log.getCurrentLogIndex(),log,myName,hostsPorts,socket);
+                                }
+                            };
+                            Algorithm.propose(currentOperation, log, myName, hostsPorts, socket);
+                            executor.schedule(delayedOperation, 1, TimeUnit.SECONDS);
+                            executor.schedule(delayedOperation, 2, TimeUnit.SECONDS);
+                            executor.schedule(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // remove the Emptylog
+                                    ??
+
+                                    if (currentOperation.getUser() == null) { // cancel event
+                                        System.out.println("Unable to cancel meeting " + currentOperation.getName() + ".");
+                                    } else {
+                                        System.out.println("Unable to schedule meeting " + currentOperation.getName() + ".");
+                                    }
+                                }
+                            }, 3, TimeUnit.SECONDS);
+                        }
+                    }
+                }
+            }
+        };
+        new Thread(operationProcessor).start();
+
+        // Message Listener
         // set up udp socket on a new thread to listen for msgs from other sites
         Runnable udpListener = new Runnable() {
 
@@ -69,8 +118,42 @@ public class NewDriver {
                             try {
                                 in = new ObjectInputStream(bis);
                                 Packet packet = (Packet) in.readObject();
-//                                System.out.println("Receive: ");
-//                                System.out.println(m.toString());
+                                // receive prepare
+                                if (packet.packetType == 0) {
+                                    Algorithm.OnRecvPrepare(packet,log,hostsPorts,socket);
+                                }
+                                // receive promise
+                                else if (packet.packetType == 1) {
+                                    Algorithm.OnRecvPromise(log,packet,myName,hostsPorts,socket);
+                                }
+                                // receive accept
+                                else if (packet.packetType == 2) {
+                                    Algorithm.OnRecvAccept(log,packet,hostsPorts,socket);
+                                }
+                                // receive ack
+                                else if (packet.packetType == 3) {
+                                    Algorithm.OnRecvAck(dictionary,log,packet,myName,hostsPorts,socket,executor);
+                                }
+                                // receive commit
+                                else if (packet.packetType == 4) {
+                                    Algorithm.OnRecvCommit(log,packet);
+                                }
+                                // receive fill holes request
+                                else if (packet.packetType == 6) {
+                                    Algorithm.DealWithHoleReq(myName,packet,socket,hostsPorts,log);
+                                }
+                                // receive reply of fill holes request
+                                else if (packet.packetType == 7) {
+                                    Algorithm.fillHoleResp(dictionary,packet,log,myName,hostsPorts,socket);
+                                }
+                                // receive hole
+                                else if (packet.packetType == 8) {
+                                    ??
+                                }
+                                // receive promise
+                                else if (packet.packetType == 9) {
+                                    ??
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             } catch (ClassNotFoundException e) {
@@ -97,13 +180,9 @@ public class NewDriver {
         };
 
         new Thread(udpListener).start();
-        // open new thread
-        //                 -> for package received
-        //==========
-
-        //==========
 
 
+        // Commandline Scanner
         while (true) {
             Scanner commandS = new Scanner(System.in);
             String command;
@@ -168,32 +247,25 @@ public class NewDriver {
                     continue;
                 }
 
-                // if holes
-                // send fill hole request
-
-
-
-
-                //==========
-
-
-
-                // Propose to acceptors
-
+                operations.add(proposedMeeting);
 
 
             }
             else if (command.equals("cancel")) {
-
+                String name = commandS.next();
+                if (dictionary.hasMeeting(name)) {
+                    meetingInfo proposedCancelMeeting = new meetingInfo(name, null, null, null, null);
+                    operations.add(proposedCancelMeeting);
+                }
             }
             else if (command.equals("view")) {
-
+                dictionary.printEntireDic();
             }
             else if (command.equals("myview")) {
-
+                dictionary.printIndividualDic(myName);
             }
             else if (command.equals("log")) {
-
+                log.PrintLog();
             }
             else if (command.equals("exit")){
 

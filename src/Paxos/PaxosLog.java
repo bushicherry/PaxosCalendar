@@ -52,6 +52,10 @@ public class PaxosLog implements Serializable {
         return currentState.getCurState();
     }
 
+    public int getCurrentLogIndex() {
+        return currentState.LogIndex;
+    }
+
 //    public void setLastProNum(int newNum){
 //        this.lastPropNum = newNum;
 //    }
