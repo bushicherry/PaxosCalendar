@@ -76,9 +76,6 @@ public class PaxosLog implements Serializable {
         LogEntry logEntry = new LogEntry(siteID,repLog.size(),type,propNum,value,proposedValue);
         insertLogEntry(logEntry);
         // should edit empty log
-        if(logEntry.isEmpty()){
-            this.EmptyLog.add(logEntry);
-        }
     }
 
     public boolean isEmpty(int logIndex) {
