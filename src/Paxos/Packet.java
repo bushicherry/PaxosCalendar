@@ -18,7 +18,9 @@ public class Packet implements Serializable {
     // 4 for commit packet
     // 6 for asking for missing holes
     // 7 for reply missing hole ask;
-    // 8 for asking how
+    // 8 for asking how many holes do you have
+    // 9 for recving how many holes u have
+
     public int LogIndex; // LogEntry index
     public int siteID;
     public String siteName;

@@ -8,6 +8,17 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class Algorithm {
 
+    /**
+     * Ask the max number of log
+     */
+    public static void askForMaxLog(){
+
+    }
+
+    /**
+     * When recv the
+     */
+
 
     /**
      * fill hole then send propose
@@ -25,7 +36,7 @@ public class Algorithm {
      */
 
     public static void DealWithHoleReq(String myName,Packet pac, DatagramSocket Socket, HashMap<String, int[] > HashPorts, PaxosLog pLog){
-        Packet tempPac = new Packet(0,0, pac.accValue, 7, 0,  pLog.getSiteID(), myName, null, null);
+        Packet tempPac = new Packet(0,0, pac.accValue, 7, 0,  pLog.getSiteID(), myName, pac.missingIndexList, null);
         int ind =  0;
         ArrayList<PaxosLog.LogEntry> tempList = new ArrayList<>();
         for(int i = 0; i < pac.missingIndexList.length; i++){
@@ -46,16 +57,19 @@ public class Algorithm {
      * When recv the filling hole response for test
      */
 
-    public static void fillHoleResp(Packet pac, PaxosLog Plog){
+    public static void fillHoleResp(Packet pac, PaxosLog Plog, Dictionary dic){
         if(!Plog.IfHoleExist()) return;
         int recvLognum = pac.RespLogArray.size();
         for(int i = 0; i < recvLognum;i++){
             int ind = pac.RespLogArray.get(i).getLogIndex();
-            int myAccNum = Plog.getRepLog().get(ind).getCurState().accNum;
-            int hisAccNum = pac.RespLogArray.get(i).getCurState().accNum;
-            if( myAccNum <= hisAccNum ){
-                Plog.getRepLog().get(ind).getCurState().accNum = hisAccNum;
+            if( Plog.getRepLog().get(ind) == null){
                 Plog.fillTheHole(ind,pac.RespLogArray.get(i).getMeeting());
+                meetingInfo m = Plog.getRepLog().get(ind).getMeeting();
+                if(m.getUser() == null){
+                    dic.removeByName(m.getName());
+                } else {
+                    dic.add(m);
+                }
             }
         }
     }
@@ -64,22 +78,39 @@ public class Algorithm {
      * for real
      */
 
-    public static void fillHoleResp(Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
+    public static void fillHoleResp(Dictionary dic, Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
         if(!Plog.IfHoleExist()) return;
         int recvLognum = pac.RespLogArray.size();
         for(int i = 0; i < recvLognum;i++){
             int ind = pac.RespLogArray.get(i).getLogIndex();
-            int myAccNum = Plog.getRepLog().get(ind).getCurState().accNum;
-            int hisAccNum = pac.RespLogArray.get(i).getCurState().accNum;
-            if( myAccNum <= hisAccNum ){
-                Plog.getRepLog().get(ind).getCurState().accNum = hisAccNum;
+            if( Plog.getRepLog().get(ind) == null){
                 Plog.fillTheHole(ind,pac.RespLogArray.get(i).getMeeting());
+                meetingInfo m = Plog.getRepLog().get(ind).getMeeting();
+                if(m.getUser() == null){
+                    dic.removeByName(m.getName());
+                } else {
+                    dic.add(m);
+                }
             }
         }
         if(!Plog.IfHoleExist()){
             if(pac.accValue != null) {
+                if(pac.accValue.getUser() == null){ // cancel
+                    // check if there exist meeting, if not, unable to schedule
+                    if(!dic.hasMeeting(pac.accValue.getName())){
+                        System.out.println("Unable to cancel meeting" + pac.accValue.getName());
+                        return;
+                    }
+                } else {
+                    // schedule
+                    // check if conflict
+                    if(dic.checkConflict(pac.accValue)){
+                        System.out.println("Unable to schedule meeting" + pac.accValue.getName());
+                        return;
+                    }
+                }
                 Propose(pac.accValue, Plog, myName, HashPorts, socket);
-                System.out.println("Poposed, wait for response");
+                System.err.println("Proposed, wait for response");
             } else {
                 // do CheckPoint
 
