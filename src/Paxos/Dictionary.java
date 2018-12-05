@@ -103,6 +103,15 @@ public class Dictionary {
     }
 
     /**
+     * check if meeting m is in the dictionary
+     * @param meetingName
+     * @return true if m is in the dictionary, false if not
+     */
+    public synchronized boolean hasMeeting(String meetingName) {
+        return mapByName.containsKey(meetingName);
+    }
+
+    /**
      * print the entire dictionary in lexicographical order
      */
     public synchronized void printEntireDic() {
