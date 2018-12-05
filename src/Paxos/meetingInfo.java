@@ -19,9 +19,9 @@ public class meetingInfo implements Serializable {
     meetingInfo(String n){
         this.name = n;
         this.users = null;
-        this.date = new int[3];
-        this.start = new int[2];
-        this.end = new int[2];
+        this.date = null;
+        this.start = null;
+        this.end = null;
     }
     // constructor
     meetingInfo(String n, int[] date_, int[] start_, int[] end_, HashSet<String> users_){
@@ -90,7 +90,7 @@ public class meetingInfo implements Serializable {
                 if(date[1] == obj.getDate()[1]){
                     if(start[0] == obj.getStart()[0]){
                         if(start[1] == obj.getStart()[1]){
-                            return 0;
+                            return this.name.compareTo(obj.getName());
                         }
                         return start[1] - obj.getStart()[1];
                     }
