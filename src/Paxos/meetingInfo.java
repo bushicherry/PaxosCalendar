@@ -70,8 +70,13 @@ public class meetingInfo implements Serializable {
         return false;
     }
 
-    public String toString(){
-        String ret = String.format("%s %02d/%02d/%d %02d:%02d %02d:%02d ",name,date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
+    public String toString() {
+        String ret;
+        if (users == null) {
+            ret = name + ",";
+        } else {
+            ret = String.format("%s %02d/%02d/%d %02d:%02d %02d:%02d ",name,date[0],date[1],date[2],start[0],start[1],end[0],end[1]);
+        }
         for (String u : users) {
             ret = ret + u;
             ret = ret + ",";

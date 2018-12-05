@@ -56,8 +56,8 @@ public class PaxosLog implements Serializable {
         }
     }
 
-    public void addLogEntry(int type, int propNum, meetingInfo value) {
-        LogEntry logEntry = new LogEntry(siteID,repLog.size(),type,propNum,value);
+    public void addLogEntry(int type, int propNum, meetingInfo value, meetingInfo proposedValue) {
+        LogEntry logEntry = new LogEntry(siteID,repLog.size(),type,propNum,value,proposedValue);
         insertLogEntry(logEntry);
     }
 
@@ -75,6 +75,27 @@ public class PaxosLog implements Serializable {
         return repLog.get(logIndex).getPropNum();
     }
 
+    /**
+     * Check if the log Entry exists
+     * @param logIndex log index
+     * @effect If the log entry exists, then nothing changed.
+     *          Otherwise, insert hole(s)
+     * @return true if the logIndex
+     */
+    public boolean checkIfLogEntryExist(int logIndex) {
+        if (logIndex >= repLog.size()) { //add the missing log entries to the log as holes
+            for (int index = repLog.size(); index <= logIndex; index++ ) {
+                addLogEntry(0,0,null,null);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkIfProposedMeetingAccepted(int logIndex) {
+        if (repLog.get(logIndex).meeting == null) return false;
+        return repLog.get(logIndex).meeting.equals(repLog.get(logIndex).proposedMeeting);
+    }
 
     /**
      * insert a value to empty hole
@@ -135,14 +156,17 @@ public class PaxosLog implements Serializable {
         private int uniqueID; // proposal number
         // value v
         meetingInfo meeting;
+        // local value
+        meetingInfo proposedMeeting;
         // state for this log
         State CurState ;// current state
 
 
-        public LogEntry(int siteID, int LogIndex, int type, int propNum, meetingInfo value)  {
+        public LogEntry(int siteID, int LogIndex, int type, int propNum, meetingInfo value, meetingInfo proposedValue)  {
             this.type = type;
             this.uniqueID = propNum; // the accNum in synod algorithm
             this.meeting = value;
+            this.proposedMeeting = proposedValue;
             this.LogIndex = LogIndex;
             this.siteID = siteID; // in anther word, SiteID
             this.CurState = new State();
@@ -158,10 +182,6 @@ public class PaxosLog implements Serializable {
 
         public int getPropNum (){
             return uniqueID;
-        }
-
-        public int getType(){
-            return this.type;
         }
 
         public void setMeeting(meetingInfo m) {
