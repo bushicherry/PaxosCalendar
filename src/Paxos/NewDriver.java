@@ -147,32 +147,26 @@ public class NewDriver {
                     if (u.equals(myName)) selfIncluded = true;
                     participants.add(u);
                 }
+                // user cannot propose an event that does not involve him/herself
                 if (!selfIncluded) {
                     System.out.println("Unable to schedule meeting " + name +".");
                     continue;
                 }
 
-                // when the site is the only site in the system, then it doen't have to
+                // create a meetingInfo object for the proposed event
+                meetingInfo proposedMeeting = new meetingInfo(name, date, startTime, endTime, participants);
+
+                // when the site is the only site in the system, then it doesn't have to
                 // execute the Paxos algorithm
                 if (numOfHosts == 1) {
-                    dictionary.add();
-                }
-
-                // set up meetingInfo, and do insert
-                //=========
-
-                // when the site is the only site in the system, then it doen't have to
-                // execute the Paxos algorithm
-                if (numOfHosts == 1) {
-                    if (dictionary.add()) {
-                        log.insertLogEntry();
-                        System.out.println();
+                    if (dictionary.add(proposedMeeting)) {
+                        log.addLogEntry(1, 0, proposedMeeting, proposedMeeting);
+                        System.out.println("Schedule " + proposedMeeting.toString() + ".");
                     } else {
-                        System.out.println();
+                        System.out.println("Unable to schedule meeting " + proposedMeeting.getName() + ".");
                     }
                     continue;
                 }
-
 
                 // if holes
                 // send fill hole request

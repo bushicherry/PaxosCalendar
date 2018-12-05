@@ -233,9 +233,9 @@ public class Algorithm {
 
             if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex)) {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                    System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString());
+                    System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 } else { // schedule event
-                    System.out.println("Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString());
+                    System.out.println("Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 }
             } else {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
@@ -265,9 +265,9 @@ public class Algorithm {
 
         if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex)) {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString());
+                System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             } else { // schedule event
-                System.out.println("Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString());
+                System.out.println("Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             }
         } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
