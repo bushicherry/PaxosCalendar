@@ -31,17 +31,35 @@ public class Dictionary {
      * @return true if conflict, false if not
      */
     public synchronized boolean checkConflict(meetingInfo m) {
+        boolean conflict = false;
         timeOrderedSet.add(m);
         int[] myEnd = m.getEnd();
         int[] myStart = m.getStart();
-        int[] highEnd = timeOrderedSet.higher(m).getEnd();
-        int[] lowStart = timeOrderedSet.lower(m).getStart();
-        if (highEnd[0]>myStart[0] || (highEnd[0]==myStart[0] && highEnd[1]>myStart[1]) ||
-                myEnd[0]>lowStart[0] || (myEnd[0]==lowStart[0] && myEnd[1]>lowStart[1])) {
-            return true;
+        meetingInfo high = timeOrderedSet.higher(m);
+        meetingInfo low = timeOrderedSet.lower(m);
+        //check if the higher element and the lower element exists
+        if (high == null && low == null) {
+            conflict = true;
+        } else if (high == null) {
+            int[] lowEnd = timeOrderedSet.lower(m).getEnd();
+            if (lowEnd[0]>myStart[0] || (lowEnd[0]==myStart[0] && lowEnd[1]>myStart[1])) {
+                conflict = true;
+            }
+        } else if (low == null) {
+            int[] highStart = timeOrderedSet.higher(m).getStart();
+            if (myEnd[0]>highStart[0] || (myEnd[0]==highStart[0] && myEnd[1]>highStart[1])) {
+                conflict = true;
+            }
+        } else {
+            int[] lowEnd = timeOrderedSet.lower(m).getEnd();
+            int[] highStart = timeOrderedSet.higher(m).getStart();
+            if (lowEnd[0]>myStart[0] || (lowEnd[0]==myStart[0] && lowEnd[1]>myStart[1]) ||
+                    myEnd[0]>highStart[0] || (myEnd[0]==highStart[0] && myEnd[1]>highStart[1])) {
+                conflict = true;
+            }
         }
         timeOrderedSet.remove(m);
-        return false;
+        return conflict;
     }
 
     /**
