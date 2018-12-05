@@ -17,10 +17,10 @@ public class PaxosLog implements Serializable {
     // constructor
     public PaxosLog(int siteID){
         this.repLog = new ArrayList<>();
-        this.lastPropNum = siteID;
+//        this.lastPropNum = siteID;
         this.EmptyLog = new Vector<>();
         this.siteID = siteID;
-        this.currentState = null;
+        this.currentState = new LogEntry(siteID, 0, 0, 0, null, null);
     }
 
     // copy constructor
@@ -44,6 +44,10 @@ public class PaxosLog implements Serializable {
         return EmptyLog;
     }
 
+    /**
+     * for non-proposer, only accNum, accValue, maxPrep and LogIndex are needed for state
+     * @return
+     */
     public State getCurrentState() {
         return currentState.getCurState();
     }
@@ -91,13 +95,26 @@ public class PaxosLog implements Serializable {
      * @return true if the logIndex
      */
     public boolean checkIfLogEntryExist(int logIndex) {
-        if (logIndex > repLog.size()) { //add the missing log entries to the log as holes
+        // logIndex >= repLog.size() means I am not a proposer, since a proposer will create an empty log entry
+        if (logIndex >= repLog.size()) { //add the missing log entries to the log as holes
             for (int index = repLog.size(); index < logIndex; index++ ) {
                 addLogEntry(0,0,null,null);
             }
             return false;
         }
         return true;
+    }
+
+    /**
+     * Call this method every time I receive a packet as acceptor or propose a new event
+     * Has no effect on proposer
+     * @param logIndex
+     */
+    public void updateLogIndex(int logIndex) {
+        if (currentState.LogIndex < logIndex) {
+            currentState.LogIndex = logIndex;
+            currentState.clearCurrentState();
+        }
     }
 
     public boolean checkIfProposedMeetingAccepted(int logIndex) {
@@ -215,6 +232,12 @@ public class PaxosLog implements Serializable {
         public boolean isEmpty() {
             if (meeting == null) return true;
             else return false;
+        }
+
+        public void clearCurrentState() {
+            CurState.maxPrep = 0;
+            CurState.accValue = null;
+            CurState.accNum = 0;
         }
 
     }

@@ -14,7 +14,7 @@ public class State implements Serializable {
     public int accNum;
     public meetingInfo accValue;
 
-    // State as proposal
+    // State as proposer
     // for majority detection
     public int propMaj; // count the number of propose response
     public int ackMaj;// count the number of ack response

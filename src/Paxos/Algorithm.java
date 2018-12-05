@@ -16,11 +16,7 @@ public class Algorithm {
     }
 
     /**
-     * When recv the askfromaxlog, send answer
-     */
-
-    /**
-     * When recv answer
+     * When recv the
      */
 
 
@@ -140,6 +136,7 @@ public class Algorithm {
         int PropNum = Plog.getSiteID() + 100;
         // Add an empty log into Paxoslog
         int index = Plog.getRepLog().size();
+        Plog.updateLogIndex(index); // update currentState
         PaxosLog.LogEntry log1 = new PaxosLog.LogEntry(hashPorts.get(myname)[1],index, 0, PropNum, null, proposedMeeting);
         Plog.insertLogEntry(log1);
         Packet preparePacket = new Packet(PropNum, 0, null, 0, index, Plog.getSiteID(), myname, null,null);
@@ -177,10 +174,15 @@ public class Algorithm {
      */
     public static void OnRecvPrepare(Packet preparePacket, PaxosLog log, String myName, HashMap<String, int[]> hashPorts,  DatagramSocket datagramSocket) {
         //add holes if the log entry does not exist
-        log.checkIfLogEntryExist(preparePacket.LogIndex);
-
-        //State state = log.getRepLog().get(preparePacket.LogIndex).getCurState();
-        State state = log.getCurrentState().
+        boolean isProposer = log.checkIfLogEntryExist(preparePacket.LogIndex); // true means I am concurrent proposer
+        log.updateLogIndex(preparePacket.LogIndex);
+        //Use currentState as state if I am not a concurrent proposer
+        State state;
+        if (isProposer) {
+            state = log.getRepLog().get(preparePacket.LogIndex).getCurState();
+        } else {
+            state = log.getCurrentState();
+        }
         if (preparePacket.propNum > state.maxPrep) {
             state.maxPrep = preparePacket.propNum;
             Packet promisePacket = new Packet(0, state.accNum, state.accValue, 1, preparePacket.LogIndex, 0, null, null, null);
@@ -209,7 +211,7 @@ public class Algorithm {
             state.accValue = promisePacket.accValue;
         }
         state.propMaj++;
-        if (state.propMaj == hashPorts.size()/2 + 1) { //Only send out accept to all when getting promise from majority, and only do this for once
+        if (state.propMaj > hashPorts.size()/2) { //Only send out accept to all when getting promise from majority, and only do this for once
             state.state = Math.max(1,state.state);
             meetingInfo accValue = state.accValue==null ? log.getRepLog().get(promisePacket.LogIndex).proposedMeeting : state.accValue;
             Packet acceptPacket = new Packet(log.getProposalNumber(promisePacket.LogIndex), 0, accValue, 2, promisePacket.LogIndex, hashPorts.get(myName)[1], myName, null, null);
@@ -231,9 +233,15 @@ public class Algorithm {
      */
     public static void OnRecvAccept(PaxosLog log, Packet acceptPacket, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket) {
         //add holes if the log entry does not exist
-        log.checkIfLogEntryExist(acceptPacket.LogIndex);
-
-        State state = log.getRepLog().get(acceptPacket.LogIndex).getCurState();
+        boolean isProposer = log.checkIfLogEntryExist(acceptPacket.LogIndex); // true means I am concurrent proposer
+        log.updateLogIndex(acceptPacket.LogIndex);
+        //Use currentState as state if I am not a concurrent proposer
+        State state;
+        if (isProposer) {
+            state = log.getRepLog().get(acceptPacket.LogIndex).getCurState();
+        } else {
+            state = log.getCurrentState();
+        }
         if (acceptPacket.propNum >= state.maxPrep) {
             state.accNum = acceptPacket.propNum;
             state.accValue = acceptPacket.accValue;
@@ -263,7 +271,7 @@ public class Algorithm {
         //Does not have to check accNum or accVal when receiving ack
         state.ackMaj++;
         //Only send out commit to all when getting ack from majority, and only do this for once
-        if (state.ackMaj == hashPorts.size()/2 + 1) {
+        if (state.ackMaj > hashPorts.size()/2) {
             state.state = Math.max(2,state.state);
             delayedRepropose.shutdownNow(); //Cancel the scheduled post-timeout re-proposing process(es)
 
@@ -295,9 +303,14 @@ public class Algorithm {
      */
     public static void OnRecvCommit(PaxosLog log, Packet commitPacket) {
         //add holes if the log entry does not exist
-        log.checkIfLogEntryExist(commitPacket.LogIndex);
-
-        log.fillTheHole(commitPacket.LogIndex, commitPacket.accValue);
+        boolean isProposer = log.checkIfLogEntryExist(commitPacket.LogIndex); // true means I am concurrent proposer
+        log.updateLogIndex(commitPacket.LogIndex);
+        //Add new log entry if I am not a concurrent proposer
+        if (!isProposer) {
+            log.addLogEntry(0, commitPacket.propNum, commitPacket.accValue, null);
+        } else { // Fill the empty log entry if I am a proposer
+            log.fillTheHole(commitPacket.LogIndex, commitPacket.accValue);
+        }
 
         if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex)) {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
