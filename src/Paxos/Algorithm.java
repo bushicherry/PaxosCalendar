@@ -16,7 +16,11 @@ public class Algorithm {
     }
 
     /**
-     * When recv the
+     * When recv the askfromaxlog, send answer
+     */
+
+    /**
+     * When recv answer
      */
 
 
