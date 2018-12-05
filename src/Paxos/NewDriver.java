@@ -139,7 +139,7 @@ public class NewDriver {
                                 }
                                 // receive commit
                                 else if (packet.packetType == 4) {
-                                    Algorithm.OnRecvCommit(log,packet);
+                                    Algorithm.OnRecvCommit( dictionary, log, packet);
                                 }
                                 // receive fill holes request
                                 else if (packet.packetType == 6) {
@@ -151,11 +151,11 @@ public class NewDriver {
                                 }
                                 // receive hole
                                 else if (packet.packetType == 8) {
-                                    ??
+
                                 }
                                 // receive promise
                                 else if (packet.packetType == 9) {
-                                    ??
+
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();

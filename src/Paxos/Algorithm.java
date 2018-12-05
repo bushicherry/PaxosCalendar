@@ -1,6 +1,9 @@
 package Paxos;
 
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
+import sun.tools.jconsole.Plotter;
+
 import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,13 +14,33 @@ public class Algorithm {
     /**
      * Ask the max number of log
      */
-    public static void askForMaxLog(){
-
+    public static void askForMaxLog(DatagramSocket socket, HashMap<String, int[] > HashPorts, String myname){
+        Packet pac = new Packet(0,0,null, 8, 0, 0, myname, null, null);
+        sendToAll(myname, HashPorts, socket, pac);
     }
 
     /**
-     * When recv the
+     * When recv the asking for how many holes
      */
+
+    public static void responseMaxlog(PaxosLog Plog,  Packet pac, DatagramSocket socket, HashMap<String, int[] > HashPorts, String myname){
+        Packet newPac = new Packet(0, Plog.getRepLog().size(), null, 9, 0,0,myname,null,null);
+        sendToAll(myname, HashPorts, socket, newPac);
+    }
+
+    /**
+     * When recv holes number from others
+     *
+     */
+
+    public static void OnrecvMaxHoles(Packet pac, PaxosLog Plog, int myID){
+        int ind = pac.accNum;
+        if (Plog.getRepLog().size() < ind){
+            for (int i = Plog.getRepLog().size(); i < ind; i++){
+                Plog.insertLogEntry(new PaxosLog.LogEntry(myID, i, 0, 0, null, null ));
+            }
+        }
+    }
 
 
     /**
@@ -78,7 +101,7 @@ public class Algorithm {
      * for real
      */
 
-    public static void fillHoleResp(Dictionary dic, Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket, ScheduledThreadPoolExecutor executor){
+    public static void fillHoleResp(Dictionary dic, Packet pac, PaxosLog Plog, String myName, HashMap<String, int[] > HashPorts,  DatagramSocket socket){
         if(!Plog.IfHoleExist()) return;
         int recvLognum = pac.RespLogArray.size();
         for(int i = 0; i < recvLognum;i++){
@@ -101,6 +124,7 @@ public class Algorithm {
                         System.out.println("Unable to cancel meeting" + pac.accValue.getName());
                         return;
                     }
+                    if(!dic.involved(myName, pac.accValue.getName())) return;
                 } else {
                     // schedule
                     // check if conflict

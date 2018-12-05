@@ -96,11 +96,11 @@ public class meetingInfo implements Serializable {
                     }
                     return start[0] - obj.getStart()[0];
                 }
-                return date[2] - obj.getDate()[2];
+                return date[1] - obj.getDate()[1];
             }
-            return date[1] - obj.getDate()[1];
+            return date[0] - obj.getDate()[0];
         }
-        return date[0] - obj.getDate()[0];
+        return date[2] - obj.getDate()[2];
     }
 
     public boolean checkConflict(meetingInfo m) {
