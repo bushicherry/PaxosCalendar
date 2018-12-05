@@ -12,7 +12,7 @@ public class Packet implements Serializable {
     public int packetType; // the packet type
     // -1 for no type
     // 0 for prepare packet
-    // 1 for prepare response packet
+    // 1 for promise packet
     // 2 for accept packet
     // 3 for ack packet
     // 4 for commit packet

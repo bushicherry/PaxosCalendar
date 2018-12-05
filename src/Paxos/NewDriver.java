@@ -155,7 +155,7 @@ public class NewDriver {
                 // when the site is the only site in the system, then it doen't have to
                 // execute the Paxos algorithm
                 if (numOfHosts == 1) {
-                    dictionary.add()
+                    dictionary.add();
                 }
 
                 // set up meetingInfo, and do insert

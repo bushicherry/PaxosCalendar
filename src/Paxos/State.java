@@ -6,7 +6,8 @@ public class State implements Serializable {
 
     public int state; // indicate the state in synod algorithm
     // 0 --> no state
-    // 1 --> In Synod Algorithm
+    // 1 --> already get majority's promises as a proposer
+    // 2 --> already get majority's acks as a proposer
 
     // State as Acceptor
     public int maxPrep;
@@ -27,11 +28,9 @@ public class State implements Serializable {
         ackMaj = 1;
     }
 
-    public void clearPropMaj() {
+    public void clearProposerState() {
         propMaj = 1;
-    }
-
-    public void clearAckMaj() {
         ackMaj = 1;
+        state = 0;
     }
 }
