@@ -8,6 +8,9 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class Driver {
+    // set up timeout processes
+    volatile static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
+
     public static void main(String[] args) throws SocketException {
         Scanner hostsInput;
         int numHosts=0;
@@ -45,64 +48,11 @@ public class Driver {
         final PaxosLog log = new PaxosLog(myIndex);
         final Dictionary dictionary = new Dictionary();
 
-        // set up timeout processes
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+
         executor.setRemoveOnCancelPolicy(true);
-        final ScheduledFuture<?>[] sf = {};
 
         // set up a queue of unfinished operations (schedule or cancel)
-        final Queue<meetingInfo> operations = new ConcurrentLinkedQueue<>();
-        // set up a new thread to process operations
-        Runnable operationProcessor = new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    meetingInfo currentOperation = operations.poll();
-                    if (currentOperation != null) {
-                        // check if the operation is to cancel an event that has already been canceled
-                        if (currentOperation.getUser() == null) {
-                            if (log.checkIfCancelExists(currentOperation.getName())) {
-                                System.out.println("Unable to cancel meeting " + currentOperation.getName() + ".");
-                                continue;
-                            }
-                        }
-
-                        // schedule timeouts
-                        Runnable delayedOperation = new Runnable() {
-                            @Override
-                            public void run() {
-                                Algorithm.rePropose(log.getCurrentLogIndex(),log,myName,hostsPorts,socket);
-                            }
-                        };
-                        executor.schedule(delayedOperation, 1, TimeUnit.SECONDS);
-                        executor.schedule(delayedOperation, 2, TimeUnit.SECONDS);
-                        sf[0] = executor.schedule(new Runnable() {
-                            @Override
-                            public void run() {
-                                // remove the empty log
-                                log.getRepLog().remove(log.getCurrentLogIndex());
-
-                                if (currentOperation.getUser() == null) { // cancel event
-                                    System.out.println("Unable to cancel meeting " + currentOperation.getName() + ".");
-                                } else {
-                                    System.out.println("Unable to schedule meeting " + currentOperation.getName() + ".");
-                                }
-                            }
-                        }, 3, TimeUnit.SECONDS);
-
-                        if (log.IfHoleExist()) {
-                            Algorithm.fillHolesReq(log, socket, currentOperation, hostsPorts, myName);
-                        } else {
-                            Algorithm.propose(currentOperation, log, myName, hostsPorts, socket);
-                        }
-
-                        //block the processor thread before timeout ends or shutdown
-                        while (!sf[0].isDone()) {}
-                    }
-                }
-            }
-        };
-        new Thread(operationProcessor).start();
+//        Queue<meetingInfo> operations = new ConcurrentLinkedQueue<>();
 
         // Message Listener
         // set up udp socket on a new thread to listen for msgs from other sites
@@ -132,38 +82,47 @@ public class Driver {
 
                                 // receive prepare
                                 if (packet.packetType == 0) {
+                                    System.err.println("Received prepare");
                                     Algorithm.OnRecvPrepare(packet,log,hostsPorts,socket);
                                 }
                                 // receive promise
                                 else if (packet.packetType == 1) {
+                                    System.err.println("Received promise");
                                     Algorithm.OnRecvPromise(log,packet,myName,hostsPorts,socket);
                                 }
                                 // receive accept
                                 else if (packet.packetType == 2) {
+                                    System.err.println("Received accept");
                                     Algorithm.OnRecvAccept(log,packet,hostsPorts,socket);
                                 }
                                 // receive ack
                                 else if (packet.packetType == 3) {
+                                    System.err.println("Received ack");
                                     Algorithm.OnRecvAck(dictionary,log,packet,myName,hostsPorts,socket,executor);
                                 }
                                 // receive commit
                                 else if (packet.packetType == 4) {
+                                    System.err.println("Received commit");
                                     Algorithm.OnRecvCommit(dictionary,log,packet);
                                 }
                                 // receive fill holes request
                                 else if (packet.packetType == 6) {
+                                    System.err.println("Received fill holes request");
                                     Algorithm.DealWithHoleReq(myName,packet,socket,hostsPorts,log);
                                 }
                                 // receive reply of fill holes request
                                 else if (packet.packetType == 7) {
+                                    System.err.println("Received reply of fill holes request");
                                     Algorithm.fillHoleResp(dictionary,packet,log,myName,hostsPorts,socket);
                                 }
-                                // receive hole
+                                // receive log number request
                                 else if (packet.packetType == 8) {
+                                    System.err.println("Received log number request");
                                     Algorithm.responseMaxlog(log,packet,socket,hostsPorts,myName);
                                 }
-                                // receive promise
+                                // receive reply of log number
                                 else if (packet.packetType == 9) {
+                                    System.err.println("Received reply of log number");
                                     Algorithm.OnrecvMaxHoles(packet, log, myIndex);
                                 }
                             } catch (IOException e) {
@@ -188,8 +147,19 @@ public class Driver {
             }
         };
 
-        new Thread(udpListener).start();
+        Thread thread = new Thread(udpListener);
+        thread.setDaemon(true);
+        thread.start();
 
+
+        // delayed repropose process
+        Runnable delayedOperation = new Runnable() {
+            @Override
+            public void run() {
+                System.err.println("delayed operation executed");
+                Algorithm.rePropose(log.getCurrentLogIndex(),log,myName,hostsPorts,socket);
+            }
+        };
 
         // Commandline Scanner
         while (true) {
@@ -210,21 +180,21 @@ public class Driver {
 
                 String[] dateArray = dateStr.split("/");
                 // for date array
-                date[0] = Integer.getInteger(dateArray[0]);
-                date[1] = Integer.getInteger((dateArray[1]));
-                date[2] = Integer.getInteger(dateArray[2]);
+                date[0] = Integer.parseInt(dateArray[0]);
+                date[1] = Integer.parseInt((dateArray[1]));
+                date[2] = Integer.parseInt(dateArray[2]);
 
                 // get start and end time
                 String[] startStr =  commandS.next().split(":");
                 String[] endStr = commandS.next().split(":");
 
                 // for startTime and endTime
-                startTime[0] = Integer.getInteger(startStr[0]);
-                startTime[1] = Integer.getInteger(startStr[1]);
+                startTime[0] = Integer.parseInt(startStr[0]);
+                startTime[1] = Integer.parseInt(startStr[1]);
 
                 //end time
-                endTime[0] = Integer.getInteger(endStr[0]);
-                endTime[1] = Integer.getInteger(endStr[1]);
+                endTime[0] = Integer.parseInt(endStr[0]);
+                endTime[1] = Integer.parseInt(endStr[1]);
 
 
                 HashSet<String> participants = new HashSet<>();
@@ -237,7 +207,7 @@ public class Driver {
                 }
                 // user cannot propose an event that does not involve him/herself
                 if (!selfIncluded) {
-                    System.out.println("Unable to schedule meeting " + name +".");
+                    System.out.println("444Unable to schedule meeting " + name +".");
                     continue;
                 }
 
@@ -249,22 +219,77 @@ public class Driver {
                 if (numOfHosts == 1) {
                     if (dictionary.add(proposedMeeting)) {
                         log.addLogEntry(1, 0, proposedMeeting, proposedMeeting);
-                        System.out.println("Schedule " + proposedMeeting.toString() + ".");
+                        System.out.println("555Schedule " + proposedMeeting.toString() + ".");
                     } else {
-                        System.out.println("Unable to schedule meeting " + proposedMeeting.getName() + ".");
+                        System.out.println("666Unable to schedule meeting " + proposedMeeting.getName() + ".");
                     }
                     continue;
-                }
+                } else {
 
-                operations.add(proposedMeeting);
+                    // schedule timeouts
+                    executor.schedule(delayedOperation, 1000, TimeUnit.MILLISECONDS);
+                    executor.schedule(delayedOperation, 2000, TimeUnit.MILLISECONDS);
+                    ScheduledFuture<?> sf = executor.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            // remove the empty log
+                            log.getRepLog().remove(log.getCurrentLogIndex());
+                            System.out.println("333Unable to schedule meeting " + name + ".");
+                        }
+                    }, 3000, TimeUnit.MILLISECONDS);
+
+                    if (log.IfHoleExist()) {
+                        Algorithm.fillHolesReq(log, socket, proposedMeeting, hostsPorts, myName);
+                    } else {
+                        Algorithm.propose(proposedMeeting, log, myName, hostsPorts, socket);
+                    }
+
+                    //block the thread before timeout ends or shutdown
+                    while ((!executor.isShutdown()) && (!sf.isDone())) {System.err.println("Not yet");}
+                    if (executor.isShutdown()) {
+                        executor = new ScheduledThreadPoolExecutor(3);
+                        executor.setRemoveOnCancelPolicy(true);
+                    }
+                }
 
 
             }
             else if (command.equals("cancel")) {
                 String name = commandS.next();
+
+
+                // check if the operation is to cancel an event that has already been canceled
+                if (log.checkIfCancelExists(name)) {
+                    System.out.println("111Unable to cancel meeting " + name + ".");
+                    continue;
+                }
+
                 if (dictionary.hasMeeting(name)) {
                     meetingInfo proposedCancelMeeting = new meetingInfo(name, null, null, null, null);
-                    operations.add(proposedCancelMeeting);
+                    // schedule timeouts
+                    executor.schedule(delayedOperation, 1000, TimeUnit.MILLISECONDS);
+                    executor.schedule(delayedOperation, 2000, TimeUnit.MILLISECONDS);
+                    ScheduledFuture<?> sf = executor.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            // remove the empty log
+                            log.getRepLog().remove(log.getCurrentLogIndex());
+                            System.out.println("222Unable to cancel meeting " + name + ".");
+                        }
+                    }, 3000, TimeUnit.MILLISECONDS);
+
+                    if (log.IfHoleExist()) {
+                        Algorithm.fillHolesReq(log, socket, proposedCancelMeeting, hostsPorts, myName);
+                    } else {
+                        Algorithm.propose(proposedCancelMeeting, log, myName, hostsPorts, socket);
+                    }
+
+                    //block the thread before timeout ends or shutdown
+                    while ((!executor.isShutdown()) && (!sf.isDone())) {System.err.println("Not yet");}
+                    if (executor.isShutdown()) {
+                        executor = new ScheduledThreadPoolExecutor(3);
+                        executor.setRemoveOnCancelPolicy(true);
+                    }
                 }
             }
             else if (command.equals("view")) {
@@ -277,7 +302,7 @@ public class Driver {
                 log.PrintLog();
             }
             else if (command.equals("exit")){
-
+                break;
             }
             else {
                 System.out.println("The command is not recognizable. Please follow the following formats:\n" +
