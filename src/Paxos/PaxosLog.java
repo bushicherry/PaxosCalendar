@@ -7,16 +7,20 @@ import java.util.Vector;
 public class PaxosLog implements Serializable {
     // a LogEntry array to store
     private ArrayList<LogEntry> repLog; // replicated LogEntry for each site
-    private int lastPropNum; // the last used proposal number
+//    private int lastPropNum; // the last used proposal number
     private Vector<PaxosLog.LogEntry> EmptyLog; // indicate if there are any holes
     private int siteID;
+
+    //state variables
+    private LogEntry currentState;
 
     // constructor
     public PaxosLog(int siteID){
         this.repLog = new ArrayList<>();
         this.lastPropNum = siteID;
-        EmptyLog = new Vector<>();
+        this.EmptyLog = new Vector<>();
         this.siteID = siteID;
+        this.currentState = null;
     }
 
     // copy constructor
@@ -40,9 +44,13 @@ public class PaxosLog implements Serializable {
         return EmptyLog;
     }
 
-    public void setLastProNum(int newNum){
-        this.lastPropNum = newNum;
+    public State getCurrentState() {
+        return currentState.getCurState();
     }
+
+//    public void setLastProNum(int newNum){
+//        this.lastPropNum = newNum;
+//    }
 
     public int getSiteID(){
         return siteID;
@@ -83,8 +91,8 @@ public class PaxosLog implements Serializable {
      * @return true if the logIndex
      */
     public boolean checkIfLogEntryExist(int logIndex) {
-        if (logIndex >= repLog.size()) { //add the missing log entries to the log as holes
-            for (int index = repLog.size(); index <= logIndex; index++ ) {
+        if (logIndex > repLog.size()) { //add the missing log entries to the log as holes
+            for (int index = repLog.size(); index < logIndex; index++ ) {
                 addLogEntry(0,0,null,null);
             }
             return false;

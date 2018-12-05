@@ -175,7 +175,8 @@ public class Algorithm {
         //add holes if the log entry does not exist
         log.checkIfLogEntryExist(preparePacket.LogIndex);
 
-        State state = log.getRepLog().get(preparePacket.LogIndex).getCurState();
+        //State state = log.getRepLog().get(preparePacket.LogIndex).getCurState();
+        State state = log.getCurrentState().
         if (preparePacket.propNum > state.maxPrep) {
             state.maxPrep = preparePacket.propNum;
             Packet promisePacket = new Packet(0, state.accNum, state.accValue, 1, preparePacket.LogIndex, 0, null, null, null);
