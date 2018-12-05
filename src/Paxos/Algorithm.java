@@ -235,8 +235,14 @@ public class Algorithm {
             if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex)) {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
                     System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString());
-                } else {
+                } else { // schedule event
                     System.out.println("Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString());
+                }
+            } else {
+                if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
+                    System.out.println("Unable to cancel meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
+                } else {
+                    System.out.println("Unable to schedule meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
                 }
             }
 
@@ -256,6 +262,21 @@ public class Algorithm {
         log.checkIfLogEntryExist(commitPacket.LogIndex);
 
         log.fillTheHole(commitPacket.LogIndex, commitPacket.accValue);
+
+        if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex)) {
+            if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
+                System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString());
+            } else { // schedule event
+                System.out.println("Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString());
+            }
+        } else {
+            if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
+                System.out.println("Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
+            } else {
+                System.out.println("Unable to schedule meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
+            }
+        }
+
     }
 
 
