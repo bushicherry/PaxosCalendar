@@ -4,9 +4,16 @@ package Paxos;
 import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
 import sun.tools.jconsole.Plotter;
 
+import java.io.*;
 import java.net.DatagramSocket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Queue;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class Algorithm {
@@ -388,6 +395,93 @@ public class Algorithm {
             }
         }
     }
+
+    /**
+     *  read file to object
+     */
+
+
+    public static Vector<Object> readFile2Obj(){
+        Vector<Object> vec = new Vector<>();
+        try {
+            // for log
+            FileInputStream fi1 = new FileInputStream(new File("log.txt"));
+            ObjectInputStream oi1 = new ObjectInputStream(fi1);
+            // Read objects
+            PaxosLog myLog = (PaxosLog) oi1.readObject();
+            oi1.close();
+            fi1.close();
+
+            // for dictionary
+            FileInputStream fi2 = new FileInputStream(new File("dic.txt"));
+            ObjectInputStream oi2 = new ObjectInputStream(fi2);
+            // Read objects
+            Dictionary myDic = (Dictionary) oi2.readObject();
+            oi2.close();
+            fi2.close();
+
+//            // for queue
+//            FileInputStream fi3 = new FileInputStream(new File("queue.txt"));
+//            ObjectInputStream oi3 = new ObjectInputStream(fi3);
+//            // read object
+//            ConcurrentLinkedQueue<meetingInfo> myQueue = (ConcurrentLinkedQueue<meetingInfo>) oi3.readObject();
+            vec.add(myLog);
+            vec.add(myDic);
+            return vec;
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        } catch (IOException e) {
+            System.out.println("Error initializing stream");
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return vec;
+    }
+
+
+    /**
+     *
+     * @param log
+     * @param dic
+     */
+
+    public static void writeLog2File(PaxosLog log){
+        try {
+            // for log
+            FileOutputStream f = new FileOutputStream(new File("log.txt"));
+            ObjectOutputStream o = new ObjectOutputStream(f);
+            // Write objects to file
+            o.writeObject(log);
+            o.close();
+            f.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        } catch (IOException e) {
+            System.out.println("Error initializing stream");
+        }
+    }
+
+    public static void writeDicFile(Dictionary dic){
+        try {
+            // for log
+            FileOutputStream f = new FileOutputStream(new File("dic.txt"));
+            ObjectOutputStream o = new ObjectOutputStream(f);
+            // Write objects to file
+            o.writeObject(dic);
+            o.close();
+            f.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        } catch (IOException e) {
+            System.out.println("Error initializing stream");
+        }
+    }
+
 
 
 }
