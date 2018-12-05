@@ -93,6 +93,7 @@ public class PaxosLog implements Serializable {
     }
 
     public boolean checkIfProposedMeetingAccepted(int logIndex) {
+        if (repLog.get(logIndex).proposedMeeting == null) return false;
         if (repLog.get(logIndex).meeting == null) return false;
         return repLog.get(logIndex).meeting.equals(repLog.get(logIndex).proposedMeeting);
     }
