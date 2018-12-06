@@ -34,11 +34,7 @@ public class Algorithm {
 
     public static void OnrecvMaxHoles(Packet pac, PaxosLog Plog, int myID){
         int ind = pac.accNum;
-        if (Plog.getRepLog().size() < ind){
-            for (int i = Plog.getRepLog().size(); i < ind; i++){
-                Plog.insertLogEntry(new PaxosLog.LogEntry(myID, i, 0, 0, null, null ));
-            }
-        }
+        Plog.updateLogIndex(ind);
     }
 
 
@@ -312,6 +308,7 @@ public class Algorithm {
             } else { //cancel
                 success = dictionary.removeByName(ackPacket.accValue.getName()); // check if no such event
             }
+
 
             if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex) && success) {
                 // COMMIT the log

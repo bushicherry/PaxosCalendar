@@ -10,6 +10,7 @@ public class PaxosLog implements Serializable {
 //    private int lastPropNum; // the last used proposal number
     private Vector<PaxosLog.LogEntry> EmptyLog; // indicate if there are any holes
     private int siteID;
+    private int implementID;
 
     //state variables
     private LogEntry currentState;
@@ -21,7 +22,11 @@ public class PaxosLog implements Serializable {
         this.EmptyLog = new Vector<>();
         this.siteID = siteID;
         this.currentState = new LogEntry(siteID, 0, 0, 0, null, null);
+        implementID = 0;
     }
+
+    // set implementID
+
 
     // copy constructor
     public PaxosLog(PaxosLog pLog){

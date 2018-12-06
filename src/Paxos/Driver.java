@@ -45,8 +45,26 @@ public class Driver {
         final DatagramSocket socket = new DatagramSocket(myPort);
 
         // set up new log and dic
-        final PaxosLog log = new PaxosLog(myIndex);
-        final Dictionary dictionary = new Dictionary();
+        final PaxosLog log;
+        final Dictionary dictionary;
+
+
+        File file1 = new File("log.txt");
+        File file2 = new File("dic.txt");
+        if(file1.exists()){
+            log = Algorithm.readlog();
+        } else {
+            log = new PaxosLog(myIndex);
+        }
+
+        if(file2.exists()){
+            dictionary = Algorithm.readDic();
+        } else {
+            dictionary = new Dictionary();
+        }
+
+
+
 
 
         executor.setRemoveOnCancelPolicy(true);
@@ -219,7 +237,8 @@ public class Driver {
                 if (numOfHosts == 1) {
                     if (dictionary.add(proposedMeeting)) {
                         log.addLogEntry(1, 0, proposedMeeting, proposedMeeting);
-                        System.out.println("555Meeting " + name + " scheduled.");
+                        System.out.println("meeting " + name + " scheduled.");
+                        System.out.println("555Schedule " + proposedMeeting.toString() + ".");
                     } else {
                         System.out.println("666Unable to schedule meeting " + proposedMeeting.getName() + ".");
                     }
