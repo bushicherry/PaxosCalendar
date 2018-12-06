@@ -25,7 +25,7 @@ public class Algorithm {
     }
 
     /**
-     * When recv the asking for how many logs
+     * When recv the asking for how many holes
      */
 
     public static void responseMaxlog(PaxosLog Plog,  Packet pac, DatagramSocket socket, HashMap<String, int[] > HashPorts, String myname){
@@ -34,7 +34,7 @@ public class Algorithm {
     }
 
     /**
-     * When recv log number from others
+     * When recv holes number from others
      *
      */
 
@@ -126,7 +126,7 @@ public class Algorithm {
                 if(pac.accValue.getUser() == null){ // cancel
                     // check if there exist meeting, if not, unable to schedule
                     if(!dic.hasMeeting(pac.accValue.getName())){
-                        System.out.println("777Unable to cancel meeting" + pac.accValue.getName());
+                        System.out.println("Unable to cancel meeting" + pac.accValue.getName());
                         return;
                     }
                     if(!dic.involved(myName, pac.accValue.getName())) return;
@@ -134,10 +134,11 @@ public class Algorithm {
                     // schedule
                     // check if conflict
                     if(dic.checkConflict(pac.accValue)){
-                        System.out.println("888Unable to schedule meeting" + pac.accValue.getName());
+                        System.out.println("Unable to schedule meeting" + pac.accValue.getName());
                         return;
                     }
                 }
+
                 propose(pac.accValue, Plog, myName, HashPorts, socket);
 
                 // for debugging
@@ -236,7 +237,6 @@ public class Algorithm {
     public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket) {
         State state = log.getRepLog().get(promisePacket.LogIndex).getCurState();
         if (state.state > 0) return;
-        System.err.println("Enter RecvPromise");
         if (promisePacket.accNum > state.accNum) {
             state.accNum = promisePacket.accNum;
             state.accValue = promisePacket.accValue;
@@ -306,9 +306,6 @@ public class Algorithm {
             state.state = Math.max(2,state.state);
             delayedRepropose.shutdownNow(); //Cancel the scheduled post-timeout re-proposing process(es)
 
-            System.err.println("shut down executed");
-            System.err.println(delayedRepropose.getQueue().size());
-
             // commit itself
             log.fillTheHole(ackPacket.LogIndex,ackPacket.accValue);
             // execute log to the dictionary
@@ -322,21 +319,31 @@ public class Algorithm {
             if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex) && success) {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
 
-                    System.out.println("999Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
+                    System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 } else { // schedule event
-                    System.out.println("101010Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                     System.out.println("Meeting " +log.getRepLog().get(ackPacket.LogIndex).meeting.getName() +  " scheduled.");
                 }
             } else {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                    System.out.println("111111Unable to cancel meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
+                    System.out.println("Unable to cancel meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
                 } else {
-                    System.out.println("121212Unable to schedule meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
+                    System.out.println("Unable to schedule meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
                 }
             }
 
             Packet commitPacket = new Packet(0,0, state.accValue, 4, ackPacket.LogIndex, 0, null, null, null);
             sendToAll(myName,hashPorts,datagramSocket,commitPacket);
+//
+//            if(CheckState(log)){
+//                if(log.IfHoleExist()) {
+//                    fillHolesReq(log, datagramSocket, null, hashPorts, myName);
+//                } else {
+//                    writeDic2File(dictionary);
+//                    writeLog2File(log);
+//                }
+//            } else {
+//                writeLog2File(log);
+//            }
         }
     }
 
@@ -368,16 +375,15 @@ public class Algorithm {
 
         if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex) && success) {
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                System.out.println("131313Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
+                System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             } else { // schedule event
-                System.out.println("141414Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
                 System.out.println("Meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + " scheduled");
             }
         } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) { // is a proposer
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                System.out.println("151515Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
+                System.out.println("Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
             } else {
-                System.out.println("161616Unable to schedule meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
+                System.out.println("Unable to schedule meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
             }
         }
 
@@ -399,50 +405,39 @@ public class Algorithm {
             }
         }
     }
+    /**
+     *
+     * used to update do checkpoint
+     */
+    public static void setCheckPoint(PaxosLog log, Dictionary dic){
+        writeLog2File(log);
+        if(log.getRepLog().size() % 5 == 0 ){
+            writeDic2File(dic);
+        }
+    }
 
     /**
-     *  read file to object
+     * checkpoint status, true: is ok for checkpoint
      */
+    public static boolean CheckState(PaxosLog log){
+        return log.getRepLog().size()/5 == 0;
+    }
 
-
-    public static Vector<Object> readFile2Obj(){
-        Vector<Object> vec = new Vector<>();
-        try {
-            // for log
-            FileInputStream fi1 = new FileInputStream(new File("log.txt"));
-            ObjectInputStream oi1 = new ObjectInputStream(fi1);
-            // Read objects
-            PaxosLog myLog = (PaxosLog) oi1.readObject();
-            oi1.close();
-            fi1.close();
-
-            // for dictionary
-            FileInputStream fi2 = new FileInputStream(new File("dic.txt"));
-            ObjectInputStream oi2 = new ObjectInputStream(fi2);
-            // Read objects
-            Dictionary myDic = (Dictionary) oi2.readObject();
-            oi2.close();
-            fi2.close();
-
-//            // for queue
-//            FileInputStream fi3 = new FileInputStream(new File("queue.txt"));
-//            ObjectInputStream oi3 = new ObjectInputStream(fi3);
-//            // read object
-//            ConcurrentLinkedQueue<meetingInfo> myQueue = (ConcurrentLinkedQueue<meetingInfo>) oi3.readObject();
-            vec.add(myLog);
-            vec.add(myDic);
-            return vec;
-
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found");
-        } catch (IOException e) {
-            System.out.println("Error initializing stream for read");
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+    /**
+     * operate log when recovery
+     */
+    public static void operateLog(PaxosLog log, Dictionary dic){
+        if(log.getRepLog().size() != 0){
+            int ind = 5*log.getRepLog().size()/5;
+            for (int i = ind; i < log.getRepLog().size(); i++){
+                meetingInfo m = log.getRepLog().get(i).getMeeting();
+                if(m.getUser() == null){
+                    dic.removeByName(m.getName());
+                } else {
+                    dic.add(m);
+                }
+            }
         }
-
-        return vec;
     }
 
 
@@ -468,6 +463,11 @@ public class Algorithm {
         }
     }
 
+    /**
+     * Write dic to files
+     * @param dic
+     */
+
     public static void writeDic2File(Dictionary dic){
         try {
             // for log
@@ -484,6 +484,7 @@ public class Algorithm {
             System.out.println("Error initializing stream for dic write");
         }
     }
+
 
     public static PaxosLog readlog(){
         PaxosLog myLog = null;
@@ -508,4 +509,24 @@ public class Algorithm {
         return myLog;
     }
 
+    public static Dictionary readDic(){
+        Dictionary myDic = null;
+        try{
+            FileInputStream fi1 = new FileInputStream(new File("dic.txt"));
+            ObjectInputStream oi1 = new ObjectInputStream(fi1);
+            // Read objects
+            myDic = (Dictionary) oi1.readObject();
+            oi1.close();
+            fi1.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        } catch (IOException e) {
+            System.out.println("Error initializing stream for read");
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return myDic;
+    }
 }
