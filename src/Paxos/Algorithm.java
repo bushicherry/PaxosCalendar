@@ -69,7 +69,7 @@ public class Algorithm {
         ArrayList<PaxosLog.LogEntry> tempList = new ArrayList<>();
         for(int i = 0; i < pac.missingIndexList.length; i++){
             int Index = pac.missingIndexList[i];
-            if(Index > pLog.getRepLog().size())break;
+            if(Index >= pLog.getRepLog().size())break;
             if(pLog.getRepLog().get(Index).getMeeting() != null){
                 tempList.add(pLog.getRepLog().get(Index));
                 ind++;
@@ -244,10 +244,7 @@ public class Algorithm {
         state.propMaj++;
         if (state.propMaj > hashPorts.size()/2) { //Only send out accept to all when getting promise from majority, and only do this for once
             state.state = Math.max(1,state.state);
-//            System.err.println(log.getRepLog().get(promisePacket.LogIndex).proposedMeeting.toString());
             meetingInfo accValue = state.accValue==null ? log.getRepLog().get(promisePacket.LogIndex).proposedMeeting : state.accValue;
-            state.accValue = accValue;
-//            System.err.println(accValue.toString());
             Packet acceptPacket = new Packet(log.getProposalNumber(promisePacket.LogIndex), 0, accValue, 2, promisePacket.LogIndex, hashPorts.get(myName)[1], myName, null, null);
             sendToAll(myName,hashPorts,datagramSocket,acceptPacket);
         }
@@ -279,9 +276,6 @@ public class Algorithm {
         if (acceptPacket.propNum >= state.maxPrep) {
             state.accNum = acceptPacket.propNum;
             state.accValue = acceptPacket.accValue;
-
-//            System.err.println(state.accValue.toString());
-
             state.maxPrep = acceptPacket.propNum;
             Packet ackPacket = new Packet(0, state.accNum, state.accValue, 3, acceptPacket.LogIndex, 0, null, null, null);
             UdpSender udpSender = new UdpSender(datagramSocket, hashPorts.get(acceptPacket.siteName)[0], acceptPacket.siteName, ackPacket);
@@ -331,6 +325,7 @@ public class Algorithm {
                     System.out.println("999Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 } else { // schedule event
                     System.out.println("101010Schedule " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
+                    System.out.println("Meeting " +log.getRepLog().get(ackPacket.LogIndex).meeting.getName() +  " scheduled.");
                 }
             } else {
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
@@ -340,7 +335,6 @@ public class Algorithm {
                 }
             }
 
-//            System.err.println("before sending ack, accValue" + state.accValue.toString());
             Packet commitPacket = new Packet(0,0, state.accValue, 4, ackPacket.LogIndex, 0, null, null, null);
             sendToAll(myName,hashPorts,datagramSocket,commitPacket);
         }
@@ -366,7 +360,6 @@ public class Algorithm {
         }
         // Execute the log to the dictionary
         boolean success = false;
-
         if (commitPacket.accValue.getUser() != null) { //schedule
             success = dictionary.add(commitPacket.accValue);
         } else { //cancel
@@ -378,6 +371,7 @@ public class Algorithm {
                 System.out.println("131313Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             } else { // schedule event
                 System.out.println("141414Schedule " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
+                System.out.println("Meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + " scheduled");
             }
         } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) { // is a proposer
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
@@ -442,7 +436,7 @@ public class Algorithm {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
-            System.out.println("Error initializing stream");
+            System.out.println("Error initializing stream for read");
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -470,11 +464,11 @@ public class Algorithm {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
-            System.out.println("Error initializing stream");
+            System.out.println("Error initializing stream for log write" );
         }
     }
 
-    public static void writeDicFile(Dictionary dic){
+    public static void writeDic2File(Dictionary dic){
         try {
             // for log
             FileOutputStream f = new FileOutputStream(new File("dic.txt"));
@@ -487,8 +481,31 @@ public class Algorithm {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
-            System.out.println("Error initializing stream");
+            System.out.println("Error initializing stream for dic write");
         }
+    }
+
+    public static PaxosLog readlog(){
+        PaxosLog myLog = null;
+        try {
+            // for log
+            FileInputStream fi1 = new FileInputStream(new File("log.txt"));
+            ObjectInputStream oi1 = new ObjectInputStream(fi1);
+            // Read objects
+            myLog = (PaxosLog) oi1.readObject();
+            oi1.close();
+            fi1.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+        } catch (IOException e) {
+            System.out.println("Error initializing stream for read");
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return myLog;
     }
 
 }

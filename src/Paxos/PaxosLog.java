@@ -75,6 +75,7 @@ public class PaxosLog implements Serializable {
     public void addLogEntry(int type, int propNum, meetingInfo value, meetingInfo proposedValue) {
         LogEntry logEntry = new LogEntry(siteID,repLog.size(),type,propNum,value,proposedValue);
         insertLogEntry(logEntry);
+        // should edit empty log
     }
 
     public boolean isEmpty(int logIndex) {
@@ -172,13 +173,14 @@ public class PaxosLog implements Serializable {
 
     //print out all LogEntry
     void PrintLog(){
-
-        for(LogEntry l: repLog){
-            if(l.getMeeting() != null) {
-                if (l.getMeeting().getUser() == null) {
-                    System.out.println("Cancel " + l.getMeeting().getName());
-                } else {
-                    System.out.println("Schedule " + l.getMeeting().toString());
+        if(repLog.size() != 0) {
+            for (LogEntry l : repLog) {
+                if (l.getMeeting() != null) {
+                    if (l.getMeeting().getUser() == null) {
+                        System.out.println("Cancel " + l.getMeeting().getName());
+                    } else {
+                        System.out.println("Schedule " + l.getMeeting().toString());
+                    }
                 }
             }
         }
