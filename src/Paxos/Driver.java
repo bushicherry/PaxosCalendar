@@ -121,7 +121,7 @@ public class Driver {
                                 // receive commit
                                 else if (packet.packetType == 4) {
                                     System.err.println("Received commit");
-                                    Algorithm.OnRecvCommit(dictionary,log,packet);
+                                    Algorithm.OnRecvCommit(dictionary,log,packet, socket, hostsPorts, myName);
                                 }
                                 // receive fill holes request
                                 else if (packet.packetType == 6) {
@@ -260,6 +260,7 @@ public class Driver {
                     if (log.IfHoleExist()) {
                         Algorithm.fillHolesReq(log, socket, proposedMeeting, hostsPorts, myName);
                     } else {
+
                         Algorithm.propose(proposedMeeting, log, myName, hostsPorts, socket);
                     }
 

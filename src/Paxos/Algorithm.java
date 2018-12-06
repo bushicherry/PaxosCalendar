@@ -134,7 +134,7 @@ public class Algorithm {
                 System.err.println("Proposed, wait for response");
             } else {
                 // do CheckPoint
-
+                setCheckPoint(Plog, dic);
             }
         }
     }
@@ -313,6 +313,14 @@ public class Algorithm {
             if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex) && success) {
                 // COMMIT the log
                 log.fillTheHole(ackPacket.LogIndex,ackPacket.accValue);
+                writeLog2File(log);
+                if(CheckState(log)){
+                    if(log.IfHoleExist()){
+                        fillHolesReq(log, datagramSocket, null, hashPorts, myName);
+                    } else {
+                        writeDic2File(dictionary);
+                    }
+                }
 
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
 
@@ -340,7 +348,7 @@ public class Algorithm {
      * @param log
      * @param commitPacket
      */
-    public static void OnRecvCommit(Dictionary dictionary, PaxosLog log, Packet commitPacket) {
+    public static void OnRecvCommit(Dictionary dictionary, PaxosLog log, Packet commitPacket, DatagramSocket datagramSocket, HashMap<String, int[]> hashPorts, String myName) {
         //add holes if the log entry does not exist
         boolean isProposer = log.checkIfLogEntryExist(commitPacket.LogIndex); // true means I am concurrent proposer
         log.updateLogIndex(commitPacket.LogIndex);
@@ -364,6 +372,15 @@ public class Algorithm {
                 System.out.println("131313Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
             } else { // schedule event
                 System.out.println("141414Meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + " scheduled");
+            }
+
+            writeLog2File(log);
+            if(CheckState(log)){
+                if(log.IfHoleExist()){
+                    fillHolesReq(log, datagramSocket, null, hashPorts, myName);
+                } else {
+                    writeDic2File(dictionary);
+                }
             }
         } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) { // is a proposer
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
