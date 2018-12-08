@@ -116,7 +116,7 @@ public class Algorithm {
                 if(pac.accValue.getUser() == null){ // cancel
                     // check if there exist meeting, if not, unable to schedule
                     if(!dic.hasMeeting(pac.accValue.getName())){
-                        System.out.println("777Unable to cancel meeting" + pac.accValue.getName());
+                        System.out.println("Unable to cancel meeting" + pac.accValue.getName());
                         return;
                     }
                     if(!dic.involved(myName, pac.accValue.getName())) return;
@@ -124,14 +124,14 @@ public class Algorithm {
                     // schedule
                     // check if conflict
                     if(dic.checkConflict(pac.accValue)){
-                        System.out.println("888Unable to schedule meeting" + pac.accValue.getName());
+                        System.out.println("Unable to schedule meeting" + pac.accValue.getName());
                         return;
                     }
                 }
                 propose(pac.accValue, Plog, myName, HashPorts, socket);
 
                 // for debugging
-                System.err.println("Proposed, wait for response");
+//                System.err.println("Proposed, wait for response");
             } else {
                 // do CheckPoint
                 setCheckPoint(Plog, dic);
@@ -226,7 +226,7 @@ public class Algorithm {
     public static void OnRecvPromise(PaxosLog log, Packet promisePacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket) {
         State state = log.getRepLog().get(promisePacket.LogIndex).getCurState();
         if (state.state > 0) return;
-        System.err.println("Enter RecvPromise");
+//        System.err.println("Enter RecvPromise");
         if (promisePacket.accNum > state.accNum) {
             state.accNum = promisePacket.accNum;
             state.accValue = promisePacket.accValue;
@@ -288,6 +288,7 @@ public class Algorithm {
      * @param delayedRepropose the delayed thread executor for timeout
      */
     public static void OnRecvAck(Dictionary dictionary, PaxosLog log, Packet ackPacket, String myName, HashMap<String, int[]> hashPorts, DatagramSocket datagramSocket, ScheduledThreadPoolExecutor delayedRepropose) {
+        if (log.getRepLog().size() <= ackPacket.LogIndex) return;
         State state = log.getRepLog().get(ackPacket.LogIndex).getCurState();
         if (state.state > 1) return;
         //Does not have to check accNum or accVal when receiving ack
@@ -297,22 +298,23 @@ public class Algorithm {
             state.state = Math.max(2,state.state);
             delayedRepropose.shutdownNow(); //Cancel the scheduled post-timeout re-proposing process(es)
 
-            System.err.println("shut down executed");
-            System.err.println(delayedRepropose.getQueue().size());
+//            System.err.println("shut down executed");
+//            System.err.println(delayedRepropose.getQueue().size());
 
             // commit itself
             // execute log to the dictionary
             boolean success = false;
+            log.fillTheHole(ackPacket.LogIndex,ackPacket.accValue);
+
             if (ackPacket.accValue.getUser() != null) { //schedule
                 success = dictionary.add(ackPacket.accValue); // check if conflict
             } else { //cancel
                 success = dictionary.removeByName(ackPacket.accValue.getName()); // check if no such event
-            }
-
+            };
 
             if (log.checkIfProposedMeetingAccepted(ackPacket.LogIndex) && success) {
                 // COMMIT the log
-                log.fillTheHole(ackPacket.LogIndex,ackPacket.accValue);
+//                log.fillTheHole(ackPacket.LogIndex,ackPacket.accValue);
                 writeLog2File(log);
                 if(CheckState(log)){
                     if(log.IfHoleExist()){
@@ -322,22 +324,27 @@ public class Algorithm {
                     }
                 }
 
+                Packet commitPacket = new Packet(0,0, state.accValue, 4, ackPacket.LogIndex, 0, null, null, null);
+                sendToAll(myName,hashPorts,datagramSocket,commitPacket);
+
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
 
-                    System.out.println("999Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
+                    System.out.println("Cancel " + log.getRepLog().get(ackPacket.LogIndex).meeting.toString() + ".");
                 } else { // schedule event
-                    System.out.println("101010Meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() +  " scheduled.");
+                    System.out.println("Meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() +  " scheduled.");
                 }
             } else {
+
+//                System.err.println(ackPacket.LogIndex);
+//                System.err.println(log.getRepLog().get(ackPacket.LogIndex).meeting.toString());
                 if (log.getRepLog().get(ackPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                    System.out.println("111111Unable to cancel meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
+                    System.out.println("Unable to cancel meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
                 } else {
-                    System.out.println("121212Unable to schedule meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
+                    System.out.println("Unable to schedule meeting " + log.getRepLog().get(ackPacket.LogIndex).meeting.getName() + ".");
                 }
+                log.getRepLog().remove(log.getRepLog().size()-1);
             }
 
-            Packet commitPacket = new Packet(0,0, state.accValue, 4, ackPacket.LogIndex, 0, null, null, null);
-            sendToAll(myName,hashPorts,datagramSocket,commitPacket);
         }
     }
 
@@ -367,13 +374,7 @@ public class Algorithm {
             success = dictionary.removeByName(commitPacket.accValue.getName());
         }
 
-        if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex) && success) {
-            if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                System.out.println("131313Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
-            } else { // schedule event
-                System.out.println("141414Meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + " scheduled");
-            }
-
+        if (success) {
             writeLog2File(log);
             if(CheckState(log)){
                 if(log.IfHoleExist()){
@@ -382,11 +383,20 @@ public class Algorithm {
                     writeDic2File(dictionary);
                 }
             }
+        }
+        if (log.checkIfProposedMeetingAccepted(commitPacket.LogIndex) && success) {
+            if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
+                System.out.println("Cancel " + log.getRepLog().get(commitPacket.LogIndex).meeting.toString() + ".");
+            } else { // schedule event
+                System.out.println("Meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + " scheduled");
+            }
+
+
         } else if (log.getRepLog().get(commitPacket.LogIndex).proposedMeeting != null) { // is a proposer
             if (log.getRepLog().get(commitPacket.LogIndex).meeting.getUser() == null) { // cancel event
-                System.out.println("151515Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
+                System.out.println("Unable to cancel meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
             } else {
-                System.out.println("161616Unable to schedule meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
+                System.out.println("Unable to schedule meeting " + log.getRepLog().get(commitPacket.LogIndex).meeting.getName() + ".");
             }
         }
 

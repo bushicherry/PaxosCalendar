@@ -33,28 +33,43 @@ public class Dictionary implements Serializable {
      * @return true if conflict, false if not
      */
     public synchronized boolean checkConflict(meetingInfo m) {
-        boolean conflict = false;
-        timeOrderedSet.add(m);
-        meetingInfo high = timeOrderedSet.higher(m);
-        meetingInfo low = timeOrderedSet.lower(m);
-        //check if the higher element and the lower element exists
-        if (high == null && low == null) {
-            conflict = false;
-        } else if (high == null) {
-            if (low.checkConflict(m)) {
-                conflict = true;
-            }
-        } else if (low == null) {
-            if (m.checkConflict(high)) {
-                conflict = true;
-            }
-        } else {
-            if (low.checkConflict(m) || m.checkConflict(high)) {
-                conflict = true;
+        if (timeOrderedSet.size() == 0) return false;
+        for (String user : m.getUser()) {
+            if (mapByUser.get(user) != null) {
+                for (meetingInfo m_ : mapByUser.get(user)) {
+                    if (m_.compareTo(m)<0) {
+                        if (m_.checkConflict(m))
+                            return true;
+                    } else {
+                        if (m.checkConflict(m_))
+                            return true;
+                    }
+                }
             }
         }
-        timeOrderedSet.remove(m);
-        return conflict;
+        return false;
+//        boolean conflict = false;
+//        timeOrderedSet.add(m);
+//        meetingInfo high = timeOrderedSet.higher(m);
+//        meetingInfo low = timeOrderedSet.lower(m);
+//        //check if the higher element and the lower element exists
+//        if (high == null && low == null) {
+//            conflict = false;
+//        } else if (high == null) {
+//            if (low.checkConflict(m)) {
+//                conflict = true;
+//            }
+//        } else if (low == null) {
+//            if (m.checkConflict(high)) {
+//                conflict = true;
+//            }
+//        } else {
+//            if (low.checkConflict(m) || m.checkConflict(high)) {
+//                conflict = true;
+//            }
+//        }
+//        timeOrderedSet.remove(m);
+//        return conflict;
     }
 
     /**
